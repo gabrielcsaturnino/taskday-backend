@@ -44,4 +44,16 @@ public class JobVacancy {
     @ManyToOne
     @JoinColumn(name = "company_id")
     private Company company;
+
+    public JobVacancy(int totalHoursJob, String title, String description, List<String> desiredExperience, Double dayValue, String status, LocalDate jobDate, List<EmployeeJobVacancy> registeredEmployees, Company company) {
+        this.totalHoursJob = totalHoursJob;
+        this.title = title;
+        this.description = description;
+        this.desiredExperience = desiredExperience;
+        this.dayValue = dayValue;
+        this.status = status;
+        this.jobDate = jobDate;
+        this.registeredEmployees = registeredEmployees;
+        this.company = company;
+    }
 }

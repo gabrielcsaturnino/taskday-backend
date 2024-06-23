@@ -33,7 +33,7 @@ public class Employee {
     private List<String> experienceList;
     private String city;
     private String state;
-    private String cep;
+    private String postalCode;
     private String addressStreet;
     private String addressComplement;
     private String addressNumber;
@@ -49,7 +49,7 @@ public class Employee {
 
 
 
-    public Employee(String firstName, String lastName, String email, String phoneNumber, String password, String cpf, List<String> experienceList, String city, String state, String cep, String addressStreet, String addressComplement, String addressNumber, String address, LocalDate dateOfBirth, @Nullable List<EmployeeJobVacancy> registeredJob) {
+    public Employee(String firstName, String lastName, String email, String phoneNumber, String password, String cpf, List<String> experienceList, String city, String state, String postalCode, String addressStreet, String addressComplement, String addressNumber, String address, LocalDate dateOfBirth, @Nullable List<EmployeeJobVacancy> registeredJob) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
@@ -59,7 +59,7 @@ public class Employee {
         this.experienceList = experienceList;
         this.city = city;
         this.state = state;
-        this.cep = cep;
+        this.postalCode = postalCode;
         this.addressStreet = addressStreet;
         this.addressComplement = addressComplement;
         this.addressNumber = addressNumber;

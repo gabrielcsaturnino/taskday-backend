@@ -29,26 +29,6 @@ public class EmployeeService {
     }
 
 
-    public EmployeeRequestDTO convertToEmployeeRequestDTO(Employee employee) {
-        return new EmployeeRequestDTO(
-                employee.getFirstName(),
-                employee.getLastName(),
-                employee.getEmail(),
-                employee.getPhoneNumber(),
-                employee.getPassword(),
-                employee.getCpf(),
-                employee.getExperienceList(),
-                employee.getCity(),
-                employee.getState(),
-                employee.getCep(),
-                employee.getAddressStreet(),
-                employee.getAddressComplement(),
-                employee.getAddressNumber(),
-                employee.getAddress(),
-                employee.getDateOfBirth(),
-                employee.getRegisteredJob()
-        );
-    }
 
     public EmployeeResponseDTO convertToEmployeeResponseDTO(Employee employee) {
         return new EmployeeResponseDTO(employee.getFirstName(),
@@ -60,7 +40,7 @@ public class EmployeeService {
                 employee.getExperienceList().stream().map(Object :: toString ).collect(Collectors.toList()),
                 employee.getCity(),
                 employee.getState(),
-                employee.getCep(),
+                employee.getPostalCode(),
                 employee.getAddressStreet(),
                 employee.getAddressComplement(),
                 employee.getAddressNumber(),
@@ -81,7 +61,7 @@ public class EmployeeService {
                 employeeRequestDTO.experienceList(),
                 employeeRequestDTO.city(),
                 employeeRequestDTO.state(),
-                employeeRequestDTO.cep(),
+                employeeRequestDTO.postalCode(),
                 employeeRequestDTO.addressStreet(),
                 employeeRequestDTO.addressComplement(),
                 employeeRequestDTO.addressNumber(),
