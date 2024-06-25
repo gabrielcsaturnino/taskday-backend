@@ -19,12 +19,6 @@ public class EmployeeController {
     @Autowired
     EmployeeService employeeService;
 
-    @PostMapping("/add")
-    public ResponseEntity<Void>  addEmployee(@RequestBody EmployeeRequestDTO employeeDTO) {
-       employeeService.createEmployee(employeeDTO);
-       return new ResponseEntity(HttpStatus.CREATED);
-    }
-
 
     @GetMapping("/see")
     public ResponseEntity<List<EmployeeResponseDTO>> getAllEmployees() {

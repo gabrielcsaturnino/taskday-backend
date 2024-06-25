@@ -1,8 +1,10 @@
 package com.example.taskday.services;
 
 import com.example.taskday.domain.employee.Employee;
+import com.example.taskday.domain.employee.EmployeeRegisterDTO;
 import com.example.taskday.domain.employee.EmployeeRequestDTO;
 import com.example.taskday.domain.employee.EmployeeResponseDTO;
+import com.example.taskday.domain.jobVacancy.JobVacancyRequestDTO;
 import com.example.taskday.repositories.EmployeeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,9 +19,14 @@ public class EmployeeService {
 
 
 
-    public void createEmployee(EmployeeRequestDTO employeeRequestDTO) {
-        employeeRepository.save(this.convertToEmployee(employeeRequestDTO));
+
+    public void createEmployee(EmployeeRegisterDTO employeeRegisterDTO, String encryptedPassword) {
+        Employee employee = this.registerDTOToEmployee(employeeRegisterDTO);
+        employee.setPassword(encryptedPassword);
+        employeeRepository.save(employee);
     }
+
+
 
     public List<EmployeeResponseDTO> getAllEmployees() {
         List<Employee> employees = employeeRepository.findAll();
@@ -50,6 +57,30 @@ public class EmployeeService {
         );
     }
 
+
+
+
+    public Employee registerDTOToEmployee(EmployeeRegisterDTO employeeRegisterDTO) {
+        return new Employee(
+                employeeRegisterDTO.firstName(),
+                employeeRegisterDTO.lastName(),
+                employeeRegisterDTO.email(),
+                employeeRegisterDTO.phoneNumber(),
+                employeeRegisterDTO.password(),
+                employeeRegisterDTO.cpf(),
+                employeeRegisterDTO.experienceList(),
+                employeeRegisterDTO.city(),
+                employeeRegisterDTO.state(),
+                employeeRegisterDTO.postalCode(),
+                employeeRegisterDTO.addressStreet(),
+                employeeRegisterDTO.addressComplement(),
+                employeeRegisterDTO.addressNumber(),
+                employeeRegisterDTO.address(),
+                employeeRegisterDTO.dateOfBirth());
+    }
+
+
+
     public Employee convertToEmployee(EmployeeRequestDTO employeeRequestDTO) {
         return new Employee(
                 employeeRequestDTO.firstName(),
@@ -66,8 +97,7 @@ public class EmployeeService {
                 employeeRequestDTO.addressComplement(),
                 employeeRequestDTO.addressNumber(),
                 employeeRequestDTO.address(),
-                employeeRequestDTO.dateOfBirth(),
-                employeeRequestDTO.registeredJob());
+                employeeRequestDTO.dateOfBirth());
     }
 
 

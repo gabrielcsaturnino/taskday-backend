@@ -1,6 +1,7 @@
 package com.example.taskday.services;
 
 import com.example.taskday.domain.company.Company;
+import com.example.taskday.domain.company.CompanyRegisterDTO;
 import com.example.taskday.domain.company.CompanyRequestDTO;
 import com.example.taskday.domain.company.CompanyResponseDTO;
 import com.example.taskday.repositories.CompanyRepository;
@@ -14,26 +15,27 @@ public class CompanyService {
     @Autowired
     CompanyRepository companyRepository;
 
-    public void createCompany(Company company) {
+    public void createCompany(CompanyRegisterDTO companyRegisterDTO, String encryptedPassword) {
+        Company company = companyRegisterDTOtoCompany(companyRegisterDTO);
+        company.setPassword(encryptedPassword);
         companyRepository.save(company);
     }
 
-    public Company convertToCompany(CompanyRequestDTO companyRequestDTO) {
+    public Company companyRegisterDTOtoCompany(CompanyRegisterDTO companyRegisterDTO) {
         return new Company(
-                companyRequestDTO.name(),
-                companyRequestDTO.cnpj(),
-                companyRequestDTO.addressStreet(),
-                companyRequestDTO.addressComplement(),
-                companyRequestDTO.addressNumber(),
-                companyRequestDTO.address(),
-                companyRequestDTO.city(),
-                companyRequestDTO.state(),
-                companyRequestDTO.postalCode(),
-                companyRequestDTO.password(),
-                companyRequestDTO.email(),
-                companyRequestDTO.phoneNumber(),
-                companyRequestDTO.ownerName(),
-                companyRequestDTO.jobList());
+                companyRegisterDTO.name(),
+                companyRegisterDTO.cnpj(),
+                companyRegisterDTO.addressStreet(),
+                companyRegisterDTO.addressComplement(),
+                companyRegisterDTO.addressNumber(),
+                companyRegisterDTO.address(),
+                companyRegisterDTO.city(),
+                companyRegisterDTO.state(),
+                companyRegisterDTO.postalCode(),
+                companyRegisterDTO.password(),
+                companyRegisterDTO.email(),
+                companyRegisterDTO.phoneNumber(),
+                companyRegisterDTO.ownerName());
 
     }
 
