@@ -4,18 +4,27 @@ import com.example.taskday.domain.employee.Employee;
 import com.example.taskday.domain.employee.EmployeeRegisterDTO;
 import com.example.taskday.domain.employee.EmployeeRequestDTO;
 import com.example.taskday.domain.employee.EmployeeResponseDTO;
-import com.example.taskday.domain.jobVacancy.JobVacancyRequestDTO;
+
+import com.example.taskday.domain.jobVacancy.JobVacancyResponseDTO;
 import com.example.taskday.repositories.EmployeeRepository;
+import com.example.taskday.repositories.JobVacancyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
 public class EmployeeService {
     @Autowired
     EmployeeRepository employeeRepository;
+
+
+    @Autowired
+    JobVacancyRepository jobVacancyRepository;
 
 
 
@@ -26,19 +35,23 @@ public class EmployeeService {
         employeeRepository.save(employee);
     }
 
-
-
-    public List<EmployeeResponseDTO> getAllEmployees() {
-        List<Employee> employees = employeeRepository.findAll();
-        return employees.stream()
-                .map(this::convertToEmployeeResponseDTO)
-                .collect(Collectors.toList());
+    public EmployeeResponseDTO findEmployeeById(UUID employeeId) {
+        Optional<Employee> employee = this.employeeRepository.findById(employeeId);
+        if (!employee.isPresent()) {
+            throw new RuntimeException("Employee not found!");
+        }
+        return convertToEmployeeResponseDTO(employee.get());
     }
 
 
 
+
+
+
     public EmployeeResponseDTO convertToEmployeeResponseDTO(Employee employee) {
-        return new EmployeeResponseDTO(employee.getFirstName(),
+        return new EmployeeResponseDTO(
+                employee.getID(),
+                employee.getFirstName(),
                 employee.getLastName(),
                 employee.getEmail(),
                 employee.getPhoneNumber(),

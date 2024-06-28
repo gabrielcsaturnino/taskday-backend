@@ -6,6 +6,7 @@ import com.example.taskday.domain.employeeJobVacancy.EmployeeJobVacancy;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
-public record JobVacancyResponseDTO(int totalHoursJob, String title, String description, List<String> desiredExperience, Double dayValue, String status, LocalDate jobDate) {
+public record JobVacancyResponseDTO(UUID jobVacancyId,int totalHoursJob, String title, String description, List<String> desiredExperience, Double dayValue, String status, LocalDate jobDate, UUID compantId, List<Employee> registeredEmployee, List<UUID> registeredEmployeeJobVacancyIds) {
 }

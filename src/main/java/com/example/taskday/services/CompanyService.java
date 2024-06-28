@@ -16,10 +16,17 @@ public class CompanyService {
     CompanyRepository companyRepository;
 
     public void createCompany(CompanyRegisterDTO companyRegisterDTO, String encryptedPassword) {
-        Company company = companyRegisterDTOtoCompany(companyRegisterDTO);
-        company.setPassword(encryptedPassword);
-        companyRepository.save(company);
+        if(this.companyRepository.findByEmail(companyRegisterDTO.email()) == null){
+            Company company = companyRegisterDTOtoCompany(companyRegisterDTO);
+            company.setPassword(encryptedPassword);
+            companyRepository.save(company);
+        }else {
+            throw new RuntimeException("Email ja existente no banco de dados");
+        }
+
     }
+
+
 
     public Company companyRegisterDTOtoCompany(CompanyRegisterDTO companyRegisterDTO) {
         return new Company(

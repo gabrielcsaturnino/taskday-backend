@@ -55,8 +55,9 @@ public class AuthenticationController {
           }
 
           String encryptedPassword = new BCryptPasswordEncoder().encode(employeeRegisterDTO.password());
+
           employeeService.createEmployee(employeeRegisterDTO, encryptedPassword);
-          return ResponseEntity.ok(new CompanyLoginResponseDTO());
+          return ResponseEntity.ok().build();
     }
 
 

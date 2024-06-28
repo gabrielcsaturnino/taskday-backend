@@ -42,13 +42,14 @@ public class JobVacancy {
     @OneToMany
     private List<Employee> registeredEmployees = new ArrayList<>();
 
+    @ElementCollection
+    private List<UUID> registeredEmployeeIds = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "company_id")
-    @Nullable
     private Company company;
 
-    public JobVacancy(int totalHoursJob, String title, String description, List<String> desiredExperience, Double dayValue, String status, LocalDate jobDate) {
+    public JobVacancy(int totalHoursJob, String title, String description, List<String> desiredExperience, Double dayValue, String status, LocalDate jobDate, Company company) {
         this.totalHoursJob = totalHoursJob;
         this.title = title;
         this.description = description;
@@ -56,6 +57,7 @@ public class JobVacancy {
         this.dayValue = dayValue;
         this.status = status;
         this.jobDate = jobDate;
+        this.company = company;
 
     }
 

@@ -49,8 +49,8 @@ public class Employee implements UserDetails{
     @JsonFormat(pattern = "dd-MM-yyyy")
     private LocalDate dateOfBirth;
 
-    @OneToMany
-    private List<JobVacancy> registeredJob = new ArrayList<>();
+    @ElementCollection
+    private List<UUID> registeredJob = new ArrayList<>();
 
     private RoleType roleType;
 
@@ -107,4 +107,6 @@ public class Employee implements UserDetails{
     public boolean isEnabled() {
         return UserDetails.super.isEnabled();
     }
+
+
 }
