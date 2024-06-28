@@ -1,8 +1,10 @@
 package com.example.taskday.domain.jobVacancy;
 
+import com.example.taskday.domain.employee.Employee;
 import com.example.taskday.domain.employeeJobVacancy.EmployeeJobVacancy;
 import com.example.taskday.domain.company.Company;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -37,11 +39,27 @@ public class JobVacancy {
 
     private int totalHoursJob;
 
-    @OneToMany(mappedBy = "jobVacancy", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<EmployeeJobVacancy> registeredEmployees = new ArrayList<>();
+    @OneToMany
+    private List<Employee> registeredEmployees = new ArrayList<>();
 
+    @ElementCollection
+    private List<UUID> registeredEmployeeIds = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "company_id")
     private Company company;
+
+    public JobVacancy(int totalHoursJob, String title, String description, List<String> desiredExperience, Double dayValue, String status, LocalDate jobDate, Company company) {
+        this.totalHoursJob = totalHoursJob;
+        this.title = title;
+        this.description = description;
+        this.desiredExperience = desiredExperience;
+        this.dayValue = dayValue;
+        this.status = status;
+        this.jobDate = jobDate;
+        this.company = company;
+
+    }
+
+
 }
