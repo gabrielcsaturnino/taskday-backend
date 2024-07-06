@@ -28,7 +28,7 @@ public class Employee implements UserDetails{
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID ID;
+    private UUID id;
 
     private String firstName;
     private String lastName;
@@ -49,13 +49,12 @@ public class Employee implements UserDetails{
     @JsonFormat(pattern = "dd-MM-yyyy")
     private LocalDate dateOfBirth;
 
-    @ElementCollection
-    private List<UUID> registeredJob = new ArrayList<>();
+
 
     private RoleType roleType;
 
-
-
+    @OneToMany(mappedBy = "employee")
+    private List<EmployeeJobVacancy> registeredJob = new ArrayList<>();
 
     public Employee(String firstName, String lastName, String email, String phoneNumber, String password, String cpf, List<String> experienceList, String city, String state, String postalCode, String addressStreet, String addressComplement, String addressNumber, String address, LocalDate dateOfBirth) {
         this.firstName = firstName;

@@ -9,6 +9,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
-public record JobVacancyRequestDTO(int totalHoursJob, String title, String description, List<String> desiredExperience, Double dayValue, String status, LocalDate jobDate, Company company) {
+public record JobVacancyRequestDTO(UUID jobVacancyId,int totalHoursJob, String title, String description, List<String> desiredExperience, Double dayValue, String status, LocalDate jobDate, Company company) {
 }
 

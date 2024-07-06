@@ -1,6 +1,9 @@
 package com.example.taskday.controllers;
 
 import com.example.taskday.domain.company.Company;
+import com.example.taskday.domain.employee.EmployeeRegisteredDTO;
+import com.example.taskday.domain.employee.EmployeeResponseDTO;
+import com.example.taskday.domain.employeeJobVacancy.EmployeeJobVacancy;
 import com.example.taskday.domain.jobVacancy.JobVacancyRequestDTO;
 import com.example.taskday.domain.jobVacancy.JobVacancyResponseDTO;
 import com.example.taskday.services.JobVacancyService;
@@ -13,6 +16,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/job")
@@ -27,11 +31,19 @@ public class JobVacancyController {
         jobVacancyService.createJobVacancy(jobVacancyRequestDTO, company);
         return ResponseEntity.ok(new ResponseEntity<>(HttpStatus.CREATED));
     }
-    @GetMapping("/see")
-    public ResponseEntity<List<JobVacancyResponseDTO>> seeJobVacancy() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Company company = (Company) authentication.getPrincipal();
-        List<JobVacancyResponseDTO> jobVacancyResponseDTOList = jobVacancyService.getJobVacanciesByCompany(company.getId());
+    @GetMapping("/seeAllJobVacancyForCompany")
+    public ResponseEntity<List<JobVacancyResponseDTO>> seeJobVacancy(@RequestParam UUID companyId) {
+        List<JobVacancyResponseDTO> jobVacancyResponseDTOList = jobVacancyService.getJobVacanciesByCompany(companyId);
         return ResponseEntity.ok(jobVacancyResponseDTOList);
     }
+
+    @GetMapping("/seeEmployeeForJobVacancy")
+    public ResponseEntity<List<EmployeeRegisteredDTO>> seeEmployeeForJobVacancy(@RequestParam("jobVacancyId") UUID jobVacancyId) {
+      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+      Company company = (Company) authentication.getPrincipal();
+      List<EmployeeRegisteredDTO> employeeRegisteredDTOSList = jobVacancyService.getAllEmployeeRegisteredByJobVacancy(jobVacancyId);
+      return ResponseEntity.ok(employeeRegisteredDTOSList);
+    }
+
+
 }

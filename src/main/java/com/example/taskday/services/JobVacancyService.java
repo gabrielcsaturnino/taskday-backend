@@ -1,9 +1,14 @@
 package com.example.taskday.services;
 
 import com.example.taskday.domain.company.Company;
+import com.example.taskday.domain.employee.EmployeeRegisteredDTO;
+import com.example.taskday.domain.employeeJobVacancy.EmployeeJobVacancy;
 import com.example.taskday.domain.jobVacancy.JobVacancy;
 import com.example.taskday.domain.jobVacancy.JobVacancyRequestDTO;
 import com.example.taskday.domain.jobVacancy.JobVacancyResponseDTO;
+import com.example.taskday.mappers.EmployeeMapper;
+import com.example.taskday.mappers.JobVacancyMapper;
+import com.example.taskday.repositories.EmployeeJobVacancyRepository;
 import com.example.taskday.repositories.JobVacancyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,60 +23,48 @@ public class JobVacancyService {
     @Autowired
     JobVacancyRepository jobVacancyRepository;
 
+    @Autowired
+    EmployeeJobVacancyRepository employeeJobVacancyRepository;
+
+    /*
+     * Correto!
+     * */
     public void createJobVacancy(JobVacancyRequestDTO jobVacancyRequestDTO, Company company) {
         try {
-            JobVacancy jobVacancy = convertToJobVacancy(jobVacancyRequestDTO);
+            JobVacancy jobVacancy = JobVacancyMapper.requestDTOToJobVacancy(jobVacancyRequestDTO);
             jobVacancy.setCompany(company);
             jobVacancyRepository.save(jobVacancy);
         }catch (NullPointerException e){
             throw new RuntimeException("Company id not found", e);
         }
-
     }
 
-    public List<JobVacancyResponseDTO> getAllJobVacancy(){
-        return jobVacancyRepository.findAll()
-                .stream()
-                .map(this::convertToJobVacancyResponseDTO).collect(Collectors.toList());
-    }
 
+
+
+
+    /*
+    * Correto!
+    * */
     public List<JobVacancyResponseDTO> getJobVacanciesByCompany(UUID companyId) {
         List<JobVacancyResponseDTO> jobVacancyResponseDTOList =  jobVacancyRepository.findByCompany_Id(companyId).
-                stream().map(this::convertToJobVacancyResponseDTO).collect(Collectors.toList());
+                stream().map(JobVacancyMapper::toDTOJobVacancy).collect(Collectors.toList());
         return jobVacancyResponseDTOList;
     }
 
+    /*
+     * Correto!
+     * */
+    public List<EmployeeRegisteredDTO> getAllEmployeeRegisteredByJobVacancy(UUID jobVacancyId){
 
-    public JobVacancy convertToJobVacancy(JobVacancyRequestDTO jobVacancyRequestDTO) {
-        return new JobVacancy(
-                jobVacancyRequestDTO.totalHoursJob(),
-                jobVacancyRequestDTO.title(),
-                jobVacancyRequestDTO.description(),
-                jobVacancyRequestDTO.desiredExperience(),
-                jobVacancyRequestDTO.dayValue(),
-                jobVacancyRequestDTO.status(),
-                jobVacancyRequestDTO.jobDate(),
-                jobVacancyRequestDTO.company()
-        );
+        return employeeJobVacancyRepository.findByJobVacancy_Id(jobVacancyId)
+                .stream()
+                .map(EmployeeJobVacancy::getEmployee).map(EmployeeMapper :: employeeToEmployeeRegisteredDTO).collect(Collectors.toList());
     }
 
 
 
-    public JobVacancyResponseDTO convertToJobVacancyResponseDTO(JobVacancy jobVacancy) {
-        return new JobVacancyResponseDTO(
-                jobVacancy.getId(),
-                jobVacancy.getTotalHoursJob(),
-                jobVacancy.getTitle(),
-                jobVacancy.getDescription(),
-                jobVacancy.getDesiredExperience(),
-                jobVacancy.getDayValue(),
-                jobVacancy.getStatus(),
-                jobVacancy.getJobDate(),
-                jobVacancy.getCompany().getId(),
-                jobVacancy.getRegisteredEmployees(),
-                jobVacancy.getRegisteredEmployeeIds()
 
-        );
-    }
+
 
 }

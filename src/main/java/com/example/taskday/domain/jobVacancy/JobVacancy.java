@@ -29,7 +29,7 @@ public class JobVacancy {
 
     private String title;
     private String description;
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     private List<String> desiredExperience = new ArrayList<>();
     private Double dayValue;
     private String status;
@@ -39,11 +39,10 @@ public class JobVacancy {
 
     private int totalHoursJob;
 
-    @OneToMany
-    private List<Employee> registeredEmployees = new ArrayList<>();
+    @OneToMany(mappedBy = "jobVacancy", fetch = FetchType.EAGER)
+    private List<EmployeeJobVacancy> registeredEmployees = new ArrayList<>();
 
-    @ElementCollection
-    private List<UUID> registeredEmployeeIds = new ArrayList<>();
+
 
     @ManyToOne
     @JoinColumn(name = "company_id")

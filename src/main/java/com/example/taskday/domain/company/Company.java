@@ -39,7 +39,7 @@ public class Company implements UserDetails {
     private String phoneNumber;
     private String ownerName;
 
-    @OneToMany(mappedBy = "company" , cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "company" , cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<JobVacancy> jobList = new ArrayList<>();
 
     private RoleType roleType;
@@ -60,6 +60,7 @@ public class Company implements UserDetails {
         this.ownerName = ownerName;
         this.roleType =  RoleType.COMPANY;
     }
+
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

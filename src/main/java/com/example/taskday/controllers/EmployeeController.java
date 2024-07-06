@@ -1,17 +1,13 @@
 package com.example.taskday.controllers;
 
 
-import ch.qos.logback.core.net.SyslogOutputStream;
 import com.example.taskday.domain.employee.Employee;
-import com.example.taskday.domain.employee.EmployeeRequestDTO;
 import com.example.taskday.domain.employee.EmployeeResponseDTO;
-import com.example.taskday.domain.jobVacancy.JobVacancyResponseDTO;
+import com.example.taskday.domain.employeeJobVacancy.EmployeeJobVacancyDTO;
 import com.example.taskday.domain.jobVacancy.JobVacancySubscribeDTO;
-import com.example.taskday.repositories.EmployeeRepository;
 import com.example.taskday.services.EmployeeJobVacancyService;
 import com.example.taskday.services.EmployeeService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -33,31 +29,41 @@ public class EmployeeController {
 
 
     @GetMapping("/allSubscribeJob")
-    public ResponseEntity<List<JobVacancyResponseDTO>> getAllSubscribeJob() {
+    public ResponseEntity<List<EmployeeJobVacancyDTO>> getAllSubscribeJob() {
         Authentication authemtication = SecurityContextHolder.getContext().getAuthentication();
         Employee employee = (Employee) authemtication.getPrincipal();
-        List<JobVacancyResponseDTO> jobVacancyResponseDTOList;
-        jobVacancyResponseDTOList =  employeeJobVacancyService.seeAllJobVacancyForEmployee(employee.getID());
+        List<EmployeeJobVacancyDTO> jobVacancyResponseDTOList;
+        jobVacancyResponseDTOList =  employeeJobVacancyService.getAllJobVacancyForEmployee(employee.getId());
         return ResponseEntity.ok(jobVacancyResponseDTOList);
     }
 
 
+   @DeleteMapping("/unsubscribeToJobVacancy")
+   public ResponseEntity<List<EmployeeJobVacancyDTO>> unsubscribeToJobVacancy(@RequestParam("jobVacancyId") UUID jobId) {
+        Authentication authemtication = SecurityContextHolder.getContext().getAuthentication();
+        Employee employee = (Employee) authemtication.getPrincipal();
+        employeeJobVacancyService.unsubscribeFromJobVacancy(jobId,employee.getId());
+        List<EmployeeJobVacancyDTO> jobVacancyResponseDTOList;
+        jobVacancyResponseDTOList = employeeJobVacancyService.getAllJobVacancyForEmployee(employee.getId());
+        return ResponseEntity.ok(jobVacancyResponseDTOList);
+   }
 
     @PostMapping("/subscribeToJob")
-    public ResponseEntity<JobVacancySubscribeDTO> subscribeToJob(@RequestBody JobVacancySubscribeDTO jobVacancySubscribeDTO) {
+    public ResponseEntity<JobVacancySubscribeDTO> subscribeToJobVacancy(@RequestBody JobVacancySubscribeDTO jobVacancySubscribeDTO) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Employee employee = (Employee) authentication.getPrincipal();
-        employeeJobVacancyService.subscribeToJobVacancy(jobVacancySubscribeDTO.jobVacancyId(), employee.getID());
-        return ResponseEntity.ok(new JobVacancySubscribeDTO(jobVacancySubscribeDTO.jobVacancyId(), employee.getID()));
+        employeeJobVacancyService.subscribeToJobVacancy(jobVacancySubscribeDTO.jobVacancyId(), employee.getId());
+        return ResponseEntity.ok(new JobVacancySubscribeDTO(jobVacancySubscribeDTO.jobVacancyId(), employee.getId()));
     }
 
-    @GetMapping("/see")
+    @GetMapping("/seeAllEmployee")
     public ResponseEntity<EmployeeResponseDTO> seeEmployee() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Employee employee = (Employee) authentication.getPrincipal();
-        EmployeeResponseDTO employeeResponseDTO = employeeService.findEmployeeById(employee.getID());
+        EmployeeResponseDTO employeeResponseDTO = employeeService.findEmployeeById(employee.getId());
         return ResponseEntity.ok(employeeResponseDTO);
     }
+
 
 
 }
