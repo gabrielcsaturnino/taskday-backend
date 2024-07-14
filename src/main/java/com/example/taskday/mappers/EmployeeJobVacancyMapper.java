@@ -23,7 +23,6 @@ public class EmployeeJobVacancyMapper {
                 employee.getAddressNumber(),
                 employee.getAddress(),
                 employee.getDateOfBirth()
-
         );
      return jobVacancyEmployeeDTO;
     }

@@ -82,7 +82,30 @@ public class EmployeeJobVacancyService {
         }
 
         EmployeeJobVacancy employeeJobVacancy = new EmployeeJobVacancy(employee, jobVacancy);
+
         employeeJobVacancyRepository.save(employeeJobVacancy);
+        if(!jobVacancy.getDesiredExperience().isEmpty() && !employee.getExperienceList().isEmpty()) {
+            this.setPont(jobVacancyId, employeeId);
+        }
+    }
+
+    public double getPoints(UUID jobVacancyId, UUID employeeId) {
+        Optional<Employee> optionalEmployee = employeeRepository.findById(employeeId);
+        Optional<JobVacancy> optionalJobVacancy = jobVacancyRepository.findById(jobVacancyId);
+
+        if (!optionalEmployee.isPresent()) {
+            throw new RuntimeException("Employee not found!");
+        }
+
+        if (!optionalJobVacancy.isPresent()) {
+            throw new RuntimeException("JobVacancy not found!");
+        }
+        Optional<EmployeeJobVacancy> optionalEmployeeJobVacancy = employeeJobVacancyRepository.findByEmployeeAndJobVacancy(optionalEmployee.get(), optionalJobVacancy.get());
+        if(optionalEmployeeJobVacancy.isPresent()){
+            EmployeeJobVacancy employeeJobVacancy = optionalEmployeeJobVacancy.get();
+            return employeeJobVacancy.getPont();
+        }
+        return 0;
     }
 
 
@@ -93,6 +116,45 @@ public class EmployeeJobVacancyService {
                 .stream()
                 .map(EmployeeJobVacancy :: getJobVacancy).map(EmployeeJobVacancyMapper:: listJobVacancyToEmployeeDTO).collect(Collectors.toList());
     }
+
+    public void setPont(UUID jobVacancyId, UUID employeeId) {
+        Optional<Employee> optionalEmployee = employeeRepository.findById(employeeId);
+        Optional<JobVacancy> optionalJobVacancy = jobVacancyRepository.findById(jobVacancyId);
+
+        if (!optionalEmployee.isPresent()) {
+            throw new RuntimeException("Employee not found!");
+        }
+
+        if (!optionalJobVacancy.isPresent()) {
+            throw new RuntimeException("JobVacancy not found!");
+        }
+        Optional<EmployeeJobVacancy> optionalEmployeeJobVacancy = employeeJobVacancyRepository.findByEmployeeAndJobVacancy(optionalEmployee.get(), optionalJobVacancy.get());
+        if (optionalEmployeeJobVacancy.isPresent()) {
+            EmployeeJobVacancy employeeJobVacancy = optionalEmployeeJobVacancy.get();
+            JobVacancy jobVacancy = optionalJobVacancy.get();
+            Employee employee = optionalEmployee.get();
+            int ponts = 0;
+            for(int i = 0; i<jobVacancy.getDesiredExperience().size(); i++){
+                for(int j = 0; j<employee.getExperienceList().size(); j++){
+                    if(employee.getExperienceList().get(j).equals(jobVacancy.getDesiredExperience().get(i))){
+                        ponts = ponts + 333;
+                        employeeJobVacancy.setPont(ponts);
+                    }
+                }
+            }
+            employeeRepository.save(employee);
+            jobVacancyRepository.save(jobVacancy);
+            employeeJobVacancyRepository.save(employeeJobVacancy);
+        }else {
+            throw new RuntimeException("Subscribe employee job vacancy not found!");
+        }
+
+
+
+
+
+    }
+
 
     public boolean isEmployeeRegisteredForJobVacancy(UUID employeeId, UUID jobVacancyId) {
         return employeeJobVacancyRepository.existsByEmployeeIdAndJobVacancyId(employeeId, jobVacancyId);

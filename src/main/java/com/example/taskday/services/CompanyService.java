@@ -42,14 +42,13 @@ public class CompanyService {
 
     }
 
-    public void deleteJobVacancy(UUID jobVacancyId, Company company) {
-        List<EmployeeJobVacancy> employeeJobVacancy = employeeJobVacancyRepository.findByJobVacancy_Id(jobVacancyId);
-        Optional<JobVacancy> jobVacancy =  jobVacancyRepository.findById(jobVacancyId);
-        company.getJobList().remove(jobVacancy.get());
-        jobVacancyRepository.delete(jobVacancy.get());
-        companyRepository.save(company);
-        employeeJobVacancyRepository.deleteAll(employeeJobVacancy);
+    public List<UUID> seeAllCompanies() {
+        List<Company> companies = companyRepository.findAll();
+        List<UUID> companiesIds = companies.stream().map(Company::getId).collect(Collectors.toList());
+        return companiesIds;
     }
+
+
 
 
 

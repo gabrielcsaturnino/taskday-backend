@@ -8,12 +8,14 @@ import com.example.taskday.domain.jobVacancy.JobVacancyRequestDTO;
 import com.example.taskday.domain.jobVacancy.JobVacancyResponseDTO;
 import com.example.taskday.mappers.EmployeeMapper;
 import com.example.taskday.mappers.JobVacancyMapper;
+import com.example.taskday.repositories.CompanyRepository;
 import com.example.taskday.repositories.EmployeeJobVacancyRepository;
 import com.example.taskday.repositories.JobVacancyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -26,12 +28,15 @@ public class JobVacancyService {
     @Autowired
     EmployeeJobVacancyRepository employeeJobVacancyRepository;
 
+    @Autowired
+    CompanyRepository companyRepository;
+
     /*
      * Correto!
      * */
     public void createJobVacancy(JobVacancyRequestDTO jobVacancyRequestDTO, Company company) {
         try {
-            JobVacancy jobVacancy = JobVacancyMapper.requestDTOToJobVacancy(jobVacancyRequestDTO);
+            JobVacancy jobVacancy = JobVacancyMapper.requestDTOToJobVacancy(jobVacancyRequestDTO, company);
             jobVacancy.setCompany(company);
             jobVacancyRepository.save(jobVacancy);
         }catch (NullPointerException e){
@@ -41,11 +46,9 @@ public class JobVacancyService {
 
 
 
-
-
     /*
-    * Correto!
-    * */
+     * Correto!
+     * */
     public List<JobVacancyResponseDTO> getJobVacanciesByCompany(UUID companyId) {
         List<JobVacancyResponseDTO> jobVacancyResponseDTOList =  jobVacancyRepository.findByCompany_Id(companyId).
                 stream().map(JobVacancyMapper::toDTOJobVacancy).collect(Collectors.toList());
@@ -59,10 +62,18 @@ public class JobVacancyService {
 
         return employeeJobVacancyRepository.findByJobVacancy_Id(jobVacancyId)
                 .stream()
-                .map(EmployeeJobVacancy::getEmployee).map(EmployeeMapper :: employeeToEmployeeRegisteredDTO).collect(Collectors.toList());
+                .map(EmployeeJobVacancy::getEmployee).map(EmployeeMapper:: employeeToEmployeeRegisteredDTO).collect(Collectors.toList());
     }
 
 
+    public void deleteJobVacancy(UUID jobVacancyId, Company company) {
+        List<EmployeeJobVacancy> employeeJobVacancy = employeeJobVacancyRepository.findByJobVacancy_Id(jobVacancyId);
+        Optional<JobVacancy> jobVacancy =  jobVacancyRepository.findById(jobVacancyId);
+        company.getJobList().remove(jobVacancy.get());
+        jobVacancyRepository.delete(jobVacancy.get());
+        companyRepository.save(company);
+        employeeJobVacancyRepository.deleteAll(employeeJobVacancy);
+    }
 
 
 

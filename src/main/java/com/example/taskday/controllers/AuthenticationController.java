@@ -41,7 +41,9 @@ public class AuthenticationController {
     @PostMapping("/login")
     public ResponseEntity login(@RequestBody @Validated EmployeeAuthenticationDTO employeeAuthenticationDTO ) {
 
-
+        if(employeeRepository.findByEmail(employeeAuthenticationDTO.email()) == null){
+            return ResponseEntity.notFound().build();
+        }
         var usernamePassword = new UsernamePasswordAuthenticationToken(employeeAuthenticationDTO.email(), employeeAuthenticationDTO.password());
         var auth = this.authenticationManager.authenticate(usernamePassword);
         var token = tokensService.generateEmployeeToken((Employee) auth.getPrincipal());
@@ -82,6 +84,5 @@ public class AuthenticationController {
         var token = tokensService.generateCompanyToken((Company) auth.getPrincipal());
         return ResponseEntity.ok(new EmployeeLoginResponseDTO(token));
     }
-
 
 }

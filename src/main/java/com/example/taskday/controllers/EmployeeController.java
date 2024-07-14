@@ -27,7 +27,6 @@ public class EmployeeController {
 
 
 
-
     @GetMapping("/allSubscribeJob")
     public ResponseEntity<List<EmployeeJobVacancyDTO>> getAllSubscribeJob() {
         Authentication authemtication = SecurityContextHolder.getContext().getAuthentication();
@@ -48,13 +47,18 @@ public class EmployeeController {
         return ResponseEntity.ok(jobVacancyResponseDTOList);
    }
 
+
     @PostMapping("/subscribeToJob")
     public ResponseEntity<JobVacancySubscribeDTO> subscribeToJobVacancy(@RequestBody JobVacancySubscribeDTO jobVacancySubscribeDTO) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Employee employee = (Employee) authentication.getPrincipal();
         employeeJobVacancyService.subscribeToJobVacancy(jobVacancySubscribeDTO.jobVacancyId(), employee.getId());
-        return ResponseEntity.ok(new JobVacancySubscribeDTO(jobVacancySubscribeDTO.jobVacancyId(), employee.getId()));
+        double points = employeeJobVacancyService.getPoints(jobVacancySubscribeDTO.jobVacancyId(), employee.getId());
+        return ResponseEntity.ok(new JobVacancySubscribeDTO(jobVacancySubscribeDTO.jobVacancyId(), employee.getId(), points));
+
     }
+
+
 
     @GetMapping("/seeAllEmployee")
     public ResponseEntity<EmployeeResponseDTO> seeEmployee() {
