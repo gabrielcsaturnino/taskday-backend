@@ -19,11 +19,7 @@ public class JobVacancyMapper {
                 jobVacancy.getDayValue(),
                 jobVacancy.getStatus(),
                 jobVacancy.getJobDate(),
-                jobVacancy.getCompany().getId(),
-                jobVacancy.getRegisteredEmployees()
-                        .stream()
-                        .map(employeeJobVacancy -> EmployeeJobVacancyMapper.listEmployeeToJobVacancyResponseDTO(employeeJobVacancy.getEmployee())).collect(Collectors.toList()));
-
+                jobVacancy.getCompany().getId());
 
         return jobVacancyResponseDTO;
     }

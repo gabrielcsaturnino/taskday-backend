@@ -1,11 +1,13 @@
 package com.example.taskday.services;
 
 import com.example.taskday.domain.employee.Employee;
+import com.example.taskday.domain.employee.EmployeeRegisteredDTO;
 import com.example.taskday.domain.employeeJobVacancy.EmployeeJobVacancy;
 import com.example.taskday.domain.employeeJobVacancy.EmployeeJobVacancyDTO;
 import com.example.taskday.domain.jobVacancy.JobVacancy;
 import com.example.taskday.domain.jobVacancy.JobVacancyResponseDTO;
 import com.example.taskday.mappers.EmployeeJobVacancyMapper;
+import com.example.taskday.mappers.EmployeeMapper;
 import com.example.taskday.repositories.EmployeeJobVacancyRepository;
 import com.example.taskday.repositories.EmployeeRepository;
 import com.example.taskday.repositories.JobVacancyRepository;
@@ -18,6 +20,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+
 
 @Service
 public class EmployeeJobVacancyService {
@@ -153,6 +157,12 @@ public class EmployeeJobVacancyService {
 
 
 
+    }
+    public List<EmployeeRegisteredDTO> getAllEmployeeRegisteredByJobVacancy(UUID jobVacancyId) {
+        return employeeJobVacancyRepository.findByJobVacancy_Id(jobVacancyId)
+                .stream()
+                .map(employeeJobVacancy -> EmployeeMapper.employeeToEmployeeRegisteredDTO(employeeJobVacancy.getEmployee(), employeeJobVacancy))
+                .collect(Collectors.toList());
     }
 
 

@@ -4,6 +4,7 @@ import com.example.taskday.domain.employee.Employee;
 import com.example.taskday.domain.employee.EmployeeRegisterDTO;
 import com.example.taskday.domain.employee.EmployeeRegisteredDTO;
 import com.example.taskday.domain.employee.EmployeeResponseDTO;
+import com.example.taskday.domain.employeeJobVacancy.EmployeeJobVacancy;
 
 import java.util.stream.Collectors;
 
@@ -52,7 +53,7 @@ public class EmployeeMapper {
         return employeeResponseDTO;
     }
 
-    public static EmployeeRegisteredDTO employeeToEmployeeRegisteredDTO(Employee employee){
+    public static EmployeeRegisteredDTO employeeToEmployeeRegisteredDTO(Employee employee, EmployeeJobVacancy employeeJobVacancy){
         EmployeeRegisteredDTO employeeRegisteredDTO = new EmployeeRegisteredDTO(
                 employee.getFirstName(),
                 employee.getLastName(),
@@ -60,8 +61,8 @@ public class EmployeeMapper {
                 employee.getPhoneNumber(),
                 employee.getExperienceList(),
                 employee.getCity(),
-                employee.getState()
-
+                employee.getState(),
+                employeeJobVacancy.getPont()
         );
         return employeeRegisteredDTO;
     }

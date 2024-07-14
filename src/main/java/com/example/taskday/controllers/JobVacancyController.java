@@ -7,6 +7,7 @@ import com.example.taskday.domain.employeeJobVacancy.EmployeeJobVacancy;
 import com.example.taskday.domain.jobVacancy.JobVacancyRequestDTO;
 import com.example.taskday.domain.jobVacancy.JobVacancyResponseDTO;
 import com.example.taskday.services.CompanyService;
+import com.example.taskday.services.EmployeeJobVacancyService;
 import com.example.taskday.services.JobVacancyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -28,6 +29,8 @@ public class JobVacancyController {
 
     @Autowired
     CompanyService companyService;
+    @Autowired
+    private EmployeeJobVacancyService employeeJobVacancyService;
 
     @PostMapping("/addJobVacancy")
     public ResponseEntity add(@RequestBody @Validated JobVacancyRequestDTO jobVacancyRequestDTO) {
@@ -46,7 +49,7 @@ public class JobVacancyController {
     public ResponseEntity<List<EmployeeRegisteredDTO>> seeEmployeeForJobVacancy(@RequestParam("jobVacancyId") UUID jobVacancyId) {
       Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
       Company company = (Company) authentication.getPrincipal();
-      List<EmployeeRegisteredDTO> employeeRegisteredDTOSList = jobVacancyService.getAllEmployeeRegisteredByJobVacancy(jobVacancyId);
+      List<EmployeeRegisteredDTO> employeeRegisteredDTOSList = employeeJobVacancyService.getAllEmployeeRegisteredByJobVacancy(jobVacancyId);
       return ResponseEntity.ok(employeeRegisteredDTOSList);
     }
 

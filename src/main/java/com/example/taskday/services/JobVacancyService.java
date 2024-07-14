@@ -58,12 +58,7 @@ public class JobVacancyService {
     /*
      * Correto!
      * */
-    public List<EmployeeRegisteredDTO> getAllEmployeeRegisteredByJobVacancy(UUID jobVacancyId){
 
-        return employeeJobVacancyRepository.findByJobVacancy_Id(jobVacancyId)
-                .stream()
-                .map(EmployeeJobVacancy::getEmployee).map(EmployeeMapper:: employeeToEmployeeRegisteredDTO).collect(Collectors.toList());
-    }
 
 
     public void deleteJobVacancy(UUID jobVacancyId, Company company) {
