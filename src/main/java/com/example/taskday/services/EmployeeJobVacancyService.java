@@ -146,6 +146,7 @@ public class EmployeeJobVacancyService {
                     }
                 }
             }
+
             employeeRepository.save(employee);
             jobVacancyRepository.save(jobVacancy);
             employeeJobVacancyRepository.save(employeeJobVacancy);

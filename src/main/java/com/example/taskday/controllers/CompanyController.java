@@ -22,7 +22,6 @@ public class CompanyController {
 
     @Autowired
     private CompanyService companyService;
-
     @GetMapping("/getAllCompanies")
     public ResponseEntity getAllCompanies() {
         List<UUID> companiesId = companyService.seeAllCompanies();

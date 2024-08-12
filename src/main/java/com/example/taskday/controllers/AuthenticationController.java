@@ -84,5 +84,6 @@ public class AuthenticationController {
         var token = tokensService.generateCompanyToken((Company) auth.getPrincipal());
         return ResponseEntity.ok(new EmployeeLoginResponseDTO(token));
     }
+    
 
 }
