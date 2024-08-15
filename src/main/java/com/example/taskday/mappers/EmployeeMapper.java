@@ -5,6 +5,7 @@ import com.example.taskday.domain.employee.EmployeeRegisterDTO;
 import com.example.taskday.domain.employee.EmployeeRegisteredDTO;
 import com.example.taskday.domain.employee.EmployeeResponseDTO;
 import com.example.taskday.domain.employeeJobVacancy.EmployeeJobVacancy;
+import jakarta.transaction.Transactional;
 
 import java.util.stream.Collectors;
 
@@ -28,6 +29,7 @@ public class EmployeeMapper {
         employee.setDateOfBirth(employeeRegisterDTO.dateOfBirth());
         return employee;
     }
+
 
     public static EmployeeResponseDTO employeeToEmployeeResponseDTO(Employee employee){
         EmployeeResponseDTO employeeResponseDTO = new EmployeeResponseDTO(

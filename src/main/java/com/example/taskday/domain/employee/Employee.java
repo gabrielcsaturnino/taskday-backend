@@ -36,8 +36,8 @@ public class Employee implements UserDetails{
     private String phoneNumber;
     private String password;
     private String cpf;
-    @ElementCollection
-    private List<String> experienceList;
+    @ElementCollection(fetch = FetchType.EAGER)
+    private List<String> experienceList = new ArrayList<>();
     private String city;
     private String state;
     private String postalCode;
