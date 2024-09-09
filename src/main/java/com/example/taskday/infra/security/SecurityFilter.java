@@ -45,7 +45,7 @@ public class   SecurityFilter extends OncePerRequestFilter {
         }
         filterChain.doFilter(request, response);
         }catch (NullPointerException e) {
-            throw new RuntimeException("UserDetails is null", e);
+            throw new RuntimeException("UserDetails is null");
         }
     }
 

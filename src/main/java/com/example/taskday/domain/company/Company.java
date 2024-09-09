@@ -24,7 +24,8 @@ public class Company implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-
+     
+    
     private String name;
     private String cnpj;
     private String addressStreet;

@@ -3,6 +3,7 @@ package com.example.taskday.services;
 import com.example.taskday.domain.employee.*;
 
 import com.example.taskday.mappers.EmployeeMapper;
+import com.example.taskday.repositories.CompanyRepository;
 import com.example.taskday.repositories.EmployeeRepository;
 import com.example.taskday.repositories.JobVacancyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,8 +18,8 @@ public class EmployeeService {
     @Autowired
     EmployeeRepository employeeRepository;
 
-
     public void createEmployee(EmployeeRegisterDTO employeeRegisterDTO, String encryptedPassword) {
+
         Employee employee = EmployeeMapper.registerDTOToEmployee(employeeRegisterDTO);
         employee.setPassword(encryptedPassword);
         employeeRepository.save(employee);
@@ -32,10 +33,5 @@ public class EmployeeService {
         }
         return EmployeeMapper.employeeToEmployeeResponseDTO(employee.get());
     }
-
-
-
-
-
 
 }

@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
@@ -28,9 +29,10 @@ public class JobVacancyController {
     private JobVacancyService jobVacancyService;
 
     @Autowired
-    CompanyService companyService;
-    @Autowired
     private EmployeeJobVacancyService employeeJobVacancyService;
+
+    @Autowired
+    private AuthenticationController authenticationController;
 
     @PostMapping("/addJobVacancy")
     public ResponseEntity add(@RequestBody @Validated JobVacancyRequestDTO jobVacancyRequestDTO) {
@@ -40,8 +42,8 @@ public class JobVacancyController {
         return ResponseEntity.ok(new ResponseEntity<>(HttpStatus.CREATED));
     }
     @GetMapping("/seeAllJobVacancyForCompany")
-    public ResponseEntity<List<JobVacancyResponseDTO>> seeJobVacancy(@RequestParam UUID companyId) {
-        List<JobVacancyResponseDTO> jobVacancyResponseDTOList = jobVacancyService.getJobVacanciesByCompany(companyId);
+    public ResponseEntity<List<JobVacancyResponseDTO>> seeJobVacancy(@RequestParam String name) {
+        List<JobVacancyResponseDTO> jobVacancyResponseDTOList = jobVacancyService.getJobVacanciesByCompany(name);
         return ResponseEntity.ok(jobVacancyResponseDTOList);
     }
 
@@ -59,6 +61,11 @@ public class JobVacancyController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Company company = (Company) authentication.getPrincipal();
         jobVacancyService.deleteJobVacancy(jobVacancyId, company);
+    }
+
+    @GetMapping("/teste")
+    public ResponseEntity teste(){
+        return ResponseEntity.ok(new ResponseEntity<>(HttpStatus.OK));
     }
 
 

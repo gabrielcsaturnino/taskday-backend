@@ -25,5 +25,13 @@ WORKDIR /app
 # Copiar o .jar gerado na etapa anterior
 COPY --from=build /app/target/*.jar app.jar
 
-# Comando para rodar a aplicação
-CMD ["java", "-jar", "app.jar"]
+# Definir o JAVA_OPTS
+ENV JAVA_OPTS="-Dcom.sun.management.jmxremote \
+               -Dcom.sun.management.jmxremote.port=9010 \
+               -Dcom.sun.management.jmxremote.rmi.port=9011 \
+               -Dcom.sun.management.jmxremote.authenticate=false \
+               -Dcom.sun.management.jmxremote.ssl=false \
+               -Djava.rmi.server.hostname=localhost"
+
+# Comando para rodar a aplicação com as opções do JAVA_OPTS
+CMD ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

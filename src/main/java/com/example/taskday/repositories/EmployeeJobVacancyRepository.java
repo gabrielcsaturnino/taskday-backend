@@ -15,6 +15,4 @@ public interface EmployeeJobVacancyRepository extends JpaRepository<EmployeeJobV
     List<EmployeeJobVacancy> findByJobVacancy_Id(UUID jobVacancyId);
     boolean existsByEmployeeIdAndJobVacancyId(UUID employeeId, UUID jobVacancyId);
     Optional<EmployeeJobVacancy> findByEmployeeAndJobVacancy(Employee employee, JobVacancy jobVacancy);
-    Optional<EmployeeJobVacancy> findByJobVacancy(JobVacancy jobVacancy);
-
 }

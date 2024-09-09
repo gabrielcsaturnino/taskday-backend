@@ -58,8 +58,6 @@ public class EmployeeController {
 
     }
 
-
-
     @GetMapping("/seeAllEmployee")
     public ResponseEntity<EmployeeResponseDTO> seeEmployee() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

@@ -2,12 +2,14 @@ package com.example.taskday.services;
 
 import com.example.taskday.domain.company.Company;
 import com.example.taskday.domain.company.CompanyRegisterDTO;
+import com.example.taskday.domain.company.CompanyResponseDTO;
 import com.example.taskday.domain.employeeJobVacancy.EmployeeJobVacancy;
 import com.example.taskday.domain.jobVacancy.JobVacancy;
 import com.example.taskday.mappers.CompanyMapper;
 import com.example.taskday.repositories.CompanyRepository;
 import com.example.taskday.repositories.EmployeeJobVacancyRepository;
 
+import com.example.taskday.repositories.EmployeeRepository;
 import com.example.taskday.repositories.JobVacancyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,35 +24,20 @@ public class CompanyService {
     @Autowired
     CompanyRepository companyRepository;
 
-    @Autowired
-    EmployeeJobVacancyRepository employeeJobVacancyRepository;
-
-    @Autowired
-    JobVacancyRepository jobVacancyRepository;
-
-
-
 
     public void createCompany(CompanyRegisterDTO companyRegisterDTO, String encryptedPassword) {
-        if(this.companyRepository.findByEmail(companyRegisterDTO.email()) == null){
-            Company company = CompanyMapper.registerDTOToCompany(companyRegisterDTO);
-            company.setPassword(encryptedPassword);
-            companyRepository.save(company);
-        }else {
-            throw new RuntimeException("Email ja existente no banco de dados");
-        }
-
+        Company company = CompanyMapper.registerDTOToCompany(companyRegisterDTO);
+        company.setPassword(encryptedPassword);
+        companyRepository.save(company);
     }
 
-    public List<UUID> seeAllCompanies() {
+    public List<CompanyResponseDTO> seeAllCompanies() {
         List<Company> companies = companyRepository.findAll();
-        List<UUID> companiesIds = companies.stream().map(Company::getId).collect(Collectors.toList());
-        return companiesIds;
+        return companies
+                .stream()
+                .map(company -> CompanyMapper.toResponseDTO(company)).collect(Collectors.toList());
+
     }
-
-
-
-
 
 }
 

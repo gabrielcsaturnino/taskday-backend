@@ -12,6 +12,7 @@ import com.example.taskday.repositories.CompanyRepository;
 import com.example.taskday.repositories.EmployeeJobVacancyRepository;
 import com.example.taskday.repositories.JobVacancyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -49,7 +50,9 @@ public class JobVacancyService {
     /*
      * Correto!
      * */
-    public List<JobVacancyResponseDTO> getJobVacanciesByCompany(UUID companyId) {
+    public List<JobVacancyResponseDTO> getJobVacanciesByCompany(String name) {
+        Optional<Company> companyOptional = companyRepository.findByName(name);
+        UUID companyId = companyOptional.get().getId();
         List<JobVacancyResponseDTO> jobVacancyResponseDTOList =  jobVacancyRepository.findByCompany_Id(companyId).
                 stream().map(JobVacancyMapper::toDTOJobVacancy).collect(Collectors.toList());
         return jobVacancyResponseDTOList;
@@ -58,9 +61,6 @@ public class JobVacancyService {
     /*
      * Correto!
      * */
-
-
-
     public void deleteJobVacancy(UUID jobVacancyId, Company company) {
         List<EmployeeJobVacancy> employeeJobVacancy = employeeJobVacancyRepository.findByJobVacancy_Id(jobVacancyId);
         Optional<JobVacancy> jobVacancy =  jobVacancyRepository.findById(jobVacancyId);

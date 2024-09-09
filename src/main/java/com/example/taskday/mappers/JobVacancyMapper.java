@@ -18,8 +18,7 @@ public class JobVacancyMapper {
                 jobVacancy.getDesiredExperience(),
                 jobVacancy.getDayValue(),
                 jobVacancy.getStatus(),
-                jobVacancy.getJobDate(),
-                jobVacancy.getCompany().getId());
+                jobVacancy.getJobDate());
 
         return jobVacancyResponseDTO;
     }

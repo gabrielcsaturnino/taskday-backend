@@ -21,6 +21,7 @@ public class TokensService {
     private String secret;
 
     public String generateEmployeeToken(Employee employee) {
+
         try{
            Algorithm algorithm = Algorithm.HMAC256(secret);
            String token = JWT.create()
@@ -34,6 +35,7 @@ public class TokensService {
         }
     }
     public String generateCompanyToken(Company company) {
+
         try{
             Algorithm algorithm = Algorithm.HMAC256(secret);
             String token = JWT.create()
