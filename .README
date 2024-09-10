@@ -1,0 +1,2 @@
+Comando para rodar a aplicação: docker compose up --build
+Disponivel em: http://localhost:8080/
