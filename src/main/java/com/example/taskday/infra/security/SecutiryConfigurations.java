@@ -39,13 +39,16 @@ public class SecutiryConfigurations {
                        .requestMatchers(HttpMethod.GET, "emp/allSubscribeJob").hasRole("EMPLOYEE")
                        .requestMatchers(HttpMethod.POST, "/emp/subscribeToJob").hasRole("EMPLOYEE")
                        .requestMatchers(HttpMethod.GET, "/emp/seeAllEmployee").hasRole("EMPLOYEE")
+                       .requestMatchers(HttpMethod.POST, "emp/changeAccount").hasRole("EMPLOYEE")
                        .requestMatchers(HttpMethod.DELETE, "/emp/unsubscribeFromJob").hasRole("EMPLOYEE")
                        .requestMatchers(HttpMethod.DELETE, "/job/deleteJobVacancy").hasRole("COMPANY")
                        .requestMatchers(HttpMethod.GET, "/company/getAllCompanies").permitAll()
-                       .requestMatchers(HttpMethod.GET, "/job/teste").permitAll()
                        .requestMatchers(HttpMethod.GET, "/").permitAll()
                        .requestMatchers(HttpMethod.GET, "/auth/isEmployee").permitAll()
                        .requestMatchers(HttpMethod.GET, "/auth/isCompany").permitAll()
+                       .requestMatchers(HttpMethod.PUT, "/job/modify").hasRole("COMPANY")
+
+
                        .anyRequest().authenticated()
                )
                .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)

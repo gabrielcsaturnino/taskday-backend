@@ -41,6 +41,7 @@ public class CompanyMapper {
         company.setState(companyRegisterDTO.state());
         company.setAddressComplement(companyRegisterDTO.addressComplement());
         company.setOwnerName(companyRegisterDTO.ownerName());
+        company.setOwnerName(companyRegisterDTO.ownerName());
         company.setEmail(companyRegisterDTO.email());
         company.setPhoneNumber(companyRegisterDTO.phoneNumber());
         company.setAddressStreet(companyRegisterDTO.addressStreet());

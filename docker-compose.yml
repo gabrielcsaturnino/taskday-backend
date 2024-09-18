@@ -31,25 +31,14 @@ services:
                   -Djava.rmi.server.hostname=localhost"
     ports:
       - "8080:8080"
-      - "9010:9010"
-      - "9011:9011"
+
+      - "8443:8443"
+
     depends_on:
       - postgres
     networks:
       - backend
 
-  nginx:
-    container_name: nginx
-    restart: always
-    build:
-      context: ./nginx
-      dockerfile: Dockerfile
-    ports:
-      - "80:80"
-    depends_on:
-      - app
-    networks:
-      - backend
 
 volumes:
   postgres-data:

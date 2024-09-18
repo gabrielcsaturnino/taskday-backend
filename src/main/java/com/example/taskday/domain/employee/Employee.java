@@ -1,11 +1,11 @@
 package com.example.taskday.domain.employee;
 
+import br.com.caelum.stella.validation.CPFValidator;
 import com.example.taskday.domain.employeeJobVacancy.EmployeeJobVacancy;
-import com.example.taskday.domain.jobVacancy.JobVacancy;
+import com.example.taskday.domain.exceptions.OperationException;
 import com.example.taskday.enums.RoleType;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,7 +14,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -30,26 +29,50 @@ public class Employee implements UserDetails{
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @NotBlank(message = "Esse campo não pode estar em branco")
+    @NotNull(message = "Esse campo não pode ser nulo")
     private String firstName;
+    @NotBlank(message = "Esse campo não pode estar em branco")
+    @NotNull(message = "Esse campo não pode ser nulo")
     private String lastName;
+    @NotBlank(message = "Esse campo não pode estar em branco")
+    @NotNull(message = "Esse campo não pode ser nulo")
+    @Email(message = "Email invalido!")
     private String email;
+    @NotBlank(message = "Esse campo não pode estar em branco")
+    @NotNull(message = "Esse campo não pode ser nulo")
     private String phoneNumber;
+    @NotBlank(message = "Esse campo não pode estar em branco")
+    @NotNull(message = "Esse campo não pode ser nulo")
     private String password;
+    @NotBlank(message = "Esse campo não pode estar em branco")
+    @NotNull(message = "Esse campo não pode ser nulo")
     private String cpf;
     @ElementCollection(fetch = FetchType.EAGER)
     private List<String> experienceList = new ArrayList<>();
+    @NotBlank(message = "Esse campo não pode estar em branco")
+    @NotNull(message = "Esse campo não pode ser nulo")
     private String city;
+    @NotBlank(message = "Esse campo não pode estar em branco")
+    @NotNull(message = "Esse campo não pode ser nulo")
     private String state;
+    @NotBlank(message = "Esse campo não pode estar em branco")
+    @NotNull(message = "Esse campo não pode ser nulo")
     private String postalCode;
+    @NotBlank(message = "Esse campo não pode estar em branco")
+    @NotNull(message = "Esse campo não pode ser nulo")
     private String addressStreet;
     private String addressComplement;
+    @NotBlank(message = "Esse campo não pode estar em branco")
+    @NotNull(message = "Esse campo não pode ser nulo")
     private String addressNumber;
+    @NotBlank(message = "Esse campo não pode estar em branco")
+    @NotNull(message = "Esse campo não pode ser nulo")
     private String address;
 
-    @JsonFormat(pattern = "dd-MM-yyyy")
+    @NotNull(message = "Esse campo não pode ser nulo")
+    @PastOrPresent(message = "Selecione uma data valida!")
     private LocalDate dateOfBirth;
-
-
 
     private RoleType roleType;
 
@@ -62,7 +85,6 @@ public class Employee implements UserDetails{
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.password = password;
-        this.cpf = cpf;
         this.experienceList = experienceList;
         this.city = city;
         this.state = state;
@@ -73,6 +95,17 @@ public class Employee implements UserDetails{
         this.address = address;
         this.dateOfBirth = dateOfBirth;
         this.roleType = RoleType.EMPLOYEE;
+
+    }
+
+    public void setCpf(String cpf) throws OperationException {
+        try {
+            CPFValidator cpfValidator = new CPFValidator();
+            cpfValidator.assertValid(cpf);
+            this.cpf = cpf;
+        }catch (Exception e){
+            throw new OperationException("CPF invalido");
+        }
     }
 
 

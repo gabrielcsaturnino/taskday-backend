@@ -5,12 +5,13 @@ import com.example.taskday.domain.employee.EmployeeRegisterDTO;
 import com.example.taskday.domain.employee.EmployeeRegisteredDTO;
 import com.example.taskday.domain.employee.EmployeeResponseDTO;
 import com.example.taskday.domain.employeeJobVacancy.EmployeeJobVacancy;
+import com.example.taskday.domain.exceptions.OperationException;
 import jakarta.transaction.Transactional;
 
 import java.util.stream.Collectors;
 
 public class EmployeeMapper {
-    public static Employee registerDTOToEmployee(EmployeeRegisterDTO employeeRegisterDTO){
+    public static Employee registerDTOToEmployee(EmployeeRegisterDTO employeeRegisterDTO) throws OperationException {
         Employee employee = new Employee();
         employee.setFirstName(employeeRegisterDTO.firstName());
         employee.setLastName(employeeRegisterDTO.lastName());
@@ -64,7 +65,7 @@ public class EmployeeMapper {
                 employee.getExperienceList(),
                 employee.getCity(),
                 employee.getState(),
-                employeeJobVacancy.getPont()
+                employeeJobVacancy.getPoint()
         );
         return employeeRegisteredDTO;
     }

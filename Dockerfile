@@ -24,7 +24,7 @@ WORKDIR /app
 
 # Copiar o .jar gerado na etapa anterior
 COPY --from=build /app/target/*.jar app.jar
-
+COPY src/main/resources/keystore.p12 /app/keystore.p12
 # Definir o JAVA_OPTS
 ENV JAVA_OPTS="-Dcom.sun.management.jmxremote \
                -Dcom.sun.management.jmxremote.port=9010 \

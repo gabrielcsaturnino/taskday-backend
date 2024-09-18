@@ -5,8 +5,6 @@ import com.example.taskday.domain.jobVacancy.JobVacancy;
 import com.example.taskday.domain.jobVacancy.JobVacancyRequestDTO;
 import com.example.taskday.domain.jobVacancy.JobVacancyResponseDTO;
 
-import java.util.stream.Collectors;
-
 
 public class JobVacancyMapper {
     public static JobVacancyResponseDTO toDTOJobVacancy(JobVacancy jobVacancy) {
@@ -17,8 +15,11 @@ public class JobVacancyMapper {
                 jobVacancy.getDescription(),
                 jobVacancy.getDesiredExperience(),
                 jobVacancy.getDayValue(),
-                jobVacancy.getStatus(),
-                jobVacancy.getJobDate());
+                jobVacancy.getJobDate(),
+                jobVacancy.getCity(),
+                jobVacancy.getState(),
+                jobVacancy.getStatus()
+        );
 
         return jobVacancyResponseDTO;
     }
@@ -27,20 +28,17 @@ public class JobVacancyMapper {
 
     public static JobVacancy requestDTOToJobVacancy(JobVacancyRequestDTO requestDTO, Company company) {
         JobVacancy jobVacancy = new JobVacancy();
-        jobVacancy.setJobDate(requestDTO.jobDate());
         jobVacancy.setTitle(requestDTO.title());
         jobVacancy.setDescription(requestDTO.description());
-        jobVacancy.setStatus(requestDTO.status());
         jobVacancy.setCompany(company);
         jobVacancy.setDayValue(requestDTO.dayValue());
         jobVacancy.setTotalHoursJob(requestDTO.totalHoursJob());
         jobVacancy.setDesiredExperience(requestDTO.desiredExperience());
-        jobVacancy.setStatus(requestDTO.status());
         jobVacancy.setJobDate(requestDTO.jobDate());
+        jobVacancy.setCity(requestDTO.city());
+        jobVacancy.setState(requestDTO.state());
+        jobVacancy.setStatus(requestDTO.status());
         return jobVacancy;
     }
-
-
-
 
 }

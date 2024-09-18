@@ -9,6 +9,5 @@ import java.util.UUID;
 
 public interface JobVacancyRepository extends JpaRepository<JobVacancy, UUID> {
     List<JobVacancy> findByCompany_Id(UUID companyId);
-
-
+    List<JobVacancy> findByCity(String city);
 }

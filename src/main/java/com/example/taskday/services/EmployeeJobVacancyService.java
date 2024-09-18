@@ -4,8 +4,9 @@ import com.example.taskday.domain.employee.Employee;
 import com.example.taskday.domain.employee.EmployeeRegisteredDTO;
 import com.example.taskday.domain.employeeJobVacancy.EmployeeJobVacancy;
 import com.example.taskday.domain.employeeJobVacancy.EmployeeJobVacancyDTO;
+import com.example.taskday.domain.exceptions.OperationException;
 import com.example.taskday.domain.jobVacancy.JobVacancy;
-import com.example.taskday.domain.jobVacancy.JobVacancyResponseDTO;
+import com.example.taskday.enums.Status;
 import com.example.taskday.mappers.EmployeeJobVacancyMapper;
 import com.example.taskday.mappers.EmployeeMapper;
 import com.example.taskday.repositories.EmployeeJobVacancyRepository;
@@ -14,7 +15,6 @@ import com.example.taskday.repositories.JobVacancyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.example.taskday.mappers.JobVacancyMapper;
 
 import java.util.List;
 import java.util.Optional;
@@ -36,17 +36,17 @@ public class EmployeeJobVacancyService {
 
 
 
-
-    public void unsubscribeFromJobVacancy(UUID jobVacancyId, UUID employeeId){
+    @Transactional
+    public void unsubscribeFromJobVacancy(UUID jobVacancyId, UUID employeeId) throws OperationException {
         Optional<JobVacancy> optionalJobVacancy = jobVacancyRepository.findById(jobVacancyId);
         Optional<Employee> optionalEmployee = employeeRepository.findById(employeeId);
 
         if (!optionalJobVacancy.isPresent()) {
-            throw new RuntimeException("Job vacancy not found!");
+            throw new OperationException("Erro interno");
         }
 
         if (!optionalEmployee.isPresent()) {
-            throw new RuntimeException("Employee not found!");
+            throw new OperationException("Erro interno");
         }
 
         JobVacancy jobVacancy = optionalJobVacancy.get();
@@ -66,48 +66,51 @@ public class EmployeeJobVacancyService {
 
 
     @Transactional
-    public void subscribeToJobVacancy(UUID jobVacancyId, UUID employeeId) {
+    public void subscribeToJobVacancy(UUID jobVacancyId, UUID employeeId) throws OperationException {
         Optional<JobVacancy> optionalJobVacancy = jobVacancyRepository.findById(jobVacancyId);
         Optional<Employee> optionalEmployee = employeeRepository.findById(employeeId);
 
         if (!optionalJobVacancy.isPresent()) {
-            throw new RuntimeException("Job vacancy not found!");
+            throw new OperationException("Erro interno");
         }
 
         if (!optionalEmployee.isPresent()) {
-            throw new RuntimeException("Employee not found!");
+            throw new OperationException("Erro interno");
         }
 
         JobVacancy jobVacancy = optionalJobVacancy.get();
         Employee employee = optionalEmployee.get();
 
         if(isEmployeeRegisteredForJobVacancy(employeeId, jobVacancyId)){
-                 throw new RuntimeException("Employee is already registered!");
+                 throw new OperationException("Você ja esta registrado nessa vaga!");
         }
 
         EmployeeJobVacancy employeeJobVacancy = new EmployeeJobVacancy(employee, jobVacancy);
 
+        if(jobVacancy.getStatus() == Status.INACTIVE){
+            throw new OperationException("Vaga inativa!");
+        }
         employeeJobVacancyRepository.save(employeeJobVacancy);
         if(!jobVacancy.getDesiredExperience().isEmpty() && !employee.getExperienceList().isEmpty()) {
-            this.setPont(jobVacancyId, employeeId);
+            this.setPoint(jobVacancyId, employeeId);
         }
     }
 
-    public double getPoints(UUID jobVacancyId, UUID employeeId) {
+    public double getPoints(UUID jobVacancyId, UUID employeeId) throws OperationException {
         Optional<Employee> optionalEmployee = employeeRepository.findById(employeeId);
         Optional<JobVacancy> optionalJobVacancy = jobVacancyRepository.findById(jobVacancyId);
 
-        if (!optionalEmployee.isPresent()) {
-            throw new RuntimeException("Employee not found!");
+        if (!optionalJobVacancy.isPresent()) {
+            throw new OperationException("Erro interno");
         }
 
-        if (!optionalJobVacancy.isPresent()) {
-            throw new RuntimeException("JobVacancy not found!");
+        if (!optionalEmployee.isPresent()) {
+            throw new OperationException("Erro interno");
         }
         Optional<EmployeeJobVacancy> optionalEmployeeJobVacancy = employeeJobVacancyRepository.findByEmployeeAndJobVacancy(optionalEmployee.get(), optionalJobVacancy.get());
         if(optionalEmployeeJobVacancy.isPresent()){
             EmployeeJobVacancy employeeJobVacancy = optionalEmployeeJobVacancy.get();
-            return employeeJobVacancy.getPont();
+            return employeeJobVacancy.getPoint();
         }
         return 0;
     }
@@ -121,28 +124,28 @@ public class EmployeeJobVacancyService {
                 .map(EmployeeJobVacancy :: getJobVacancy).map(EmployeeJobVacancyMapper:: listJobVacancyToEmployeeDTO).collect(Collectors.toList());
     }
 
-    public void setPont(UUID jobVacancyId, UUID employeeId) {
+    public void setPoint(UUID jobVacancyId, UUID employeeId) throws OperationException {
         Optional<Employee> optionalEmployee = employeeRepository.findById(employeeId);
         Optional<JobVacancy> optionalJobVacancy = jobVacancyRepository.findById(jobVacancyId);
 
-        if (!optionalEmployee.isPresent()) {
-            throw new RuntimeException("Employee not found!");
+        if (!optionalJobVacancy.isPresent()) {
+            throw new OperationException("Erro interno");
         }
 
-        if (!optionalJobVacancy.isPresent()) {
-            throw new RuntimeException("JobVacancy not found!");
+        if (!optionalEmployee.isPresent()) {
+            throw new OperationException("Erro interno");
         }
         Optional<EmployeeJobVacancy> optionalEmployeeJobVacancy = employeeJobVacancyRepository.findByEmployeeAndJobVacancy(optionalEmployee.get(), optionalJobVacancy.get());
         if (optionalEmployeeJobVacancy.isPresent()) {
             EmployeeJobVacancy employeeJobVacancy = optionalEmployeeJobVacancy.get();
             JobVacancy jobVacancy = optionalJobVacancy.get();
             Employee employee = optionalEmployee.get();
-            int ponts = 0;
+            int points = 0;
             for(int i = 0; i<jobVacancy.getDesiredExperience().size(); i++){
                 for(int j = 0; j<employee.getExperienceList().size(); j++){
                     if(employee.getExperienceList().get(j).equals(jobVacancy.getDesiredExperience().get(i))){
-                        ponts = ponts + 333;
-                        employeeJobVacancy.setPont(ponts);
+                        points = points + 200;
+                        employeeJobVacancy.setPoint(points);
                     }
                 }
             }
@@ -151,12 +154,8 @@ public class EmployeeJobVacancyService {
             jobVacancyRepository.save(jobVacancy);
             employeeJobVacancyRepository.save(employeeJobVacancy);
         }else {
-            throw new RuntimeException("Subscribe employee job vacancy not found!");
+            throw new OperationException("Erro interno");
         }
-
-
-
-
 
     }
     public List<EmployeeRegisteredDTO> getAllEmployeeRegisteredByJobVacancy(UUID jobVacancyId) {
@@ -170,6 +169,5 @@ public class EmployeeJobVacancyService {
     public boolean isEmployeeRegisteredForJobVacancy(UUID employeeId, UUID jobVacancyId) {
         return employeeJobVacancyRepository.existsByEmployeeIdAndJobVacancyId(employeeId, jobVacancyId);
     }
-    
 
 }
