@@ -23,6 +23,8 @@ public class EmployeeJobVacancy {
     @ManyToOne(fetch = FetchType.EAGER)
     private JobVacancy jobVacancy;
 
+
+
     private double point;
 
     public EmployeeJobVacancy(Employee employee, JobVacancy jobVacancy) {

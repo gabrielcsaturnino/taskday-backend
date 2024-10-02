@@ -51,7 +51,10 @@ public class EmployeeMapper {
                 employee.getDateOfBirth(),
                 employee.getRegisteredJob()
                         .stream()
-                        .map(employeeJobVacancy -> EmployeeJobVacancyMapper.listJobVacancyToEmployeeDTO(employeeJobVacancy.getJobVacancy())).collect(Collectors.toList()));
+                        .map(employeeJobVacancy -> EmployeeJobVacancyMapper.listJobVacancyToEmployeeDTO(employeeJobVacancy.getJobVacancy())).collect(Collectors.toList()),
+                employee.getCreatedBy()
+
+        );
 
         return employeeResponseDTO;
     }

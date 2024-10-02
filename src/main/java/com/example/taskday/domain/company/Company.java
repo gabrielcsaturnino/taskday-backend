@@ -1,6 +1,9 @@
 package com.example.taskday.domain.company;
 
 
+import br.com.caelum.stella.validation.CNPJValidator;
+import br.com.caelum.stella.validation.CPFValidator;
+import com.example.taskday.domain.exceptions.OperationException;
 import com.example.taskday.domain.jobVacancy.JobVacancy;
 import com.example.taskday.enums.RoleType;
 import jakarta.persistence.*;
@@ -11,10 +14,13 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -37,6 +43,8 @@ public class Company implements UserDetails {
     @NotBlank(message = "Esse campo não pode estar em branco")
     @NotNull(message = "Esse campo não pode ser nulo")
     private String addressStreet;
+    @NotBlank(message = "Esse campo não pode estar em branco")
+    @NotNull(message = "Esse campo não pode ser nulo")
     private String addressComplement;
     @NotBlank(message = "Esse campo não pode estar em branco")
     @NotNull(message = "Esse campo não pode ser nulo")
@@ -70,14 +78,19 @@ public class Company implements UserDetails {
     @NotNull(message = "Esse campo não pode ser nulo")
     private String ownerCpf;
 
-    @OneToMany(mappedBy = "company" , cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "company")
     private List<JobVacancy> jobList = new ArrayList<>();
 
     private RoleType roleType;
 
-    public Company(String name, String cnpj, String addressStreet, String addressComplement, String addressNumber, String address, String city, String state, String postalCode, String password, String email, String phoneNumber, String ownerCpf,String ownerName) {
+    @CreatedDate
+    private LocalDate createdBy;
+
+    @LastModifiedDate
+    private LocalDate updatedBy;
+
+    public Company(String name, String addressStreet, String addressComplement, String addressNumber, String address, String city, String state, String postalCode, String password, String email, String phoneNumber,String ownerName) {
         this.name = name;
-        this.cnpj = cnpj;
         this.addressStreet = addressStreet;
         this.addressComplement = addressComplement;
         this.addressNumber = addressNumber;
@@ -89,11 +102,30 @@ public class Company implements UserDetails {
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.ownerName = ownerName;
-        this.ownerCpf = ownerCpf;
         this.roleType =  RoleType.COMPANY;
 
     }
 
+    public void setCnpj(String cnpj) throws OperationException {
+        try {
+            CNPJValidator cnpjValidator = new CNPJValidator();
+            cnpjValidator.assertValid(cnpj);
+            this.cnpj = cnpj;
+        }catch (Exception e){
+            throw  new OperationException("CNPJ invalido");
+        }
+    }
+
+    public void setOwnerCpf(String ownerCpf) throws OperationException {
+        try{
+            CPFValidator cpfValidator = new CPFValidator();
+            cpfValidator.assertValid(ownerCpf);
+            this.ownerCpf = ownerCpf;
+        }catch (Exception e){
+            throw new OperationException("CPF invalido");
+        }
+
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

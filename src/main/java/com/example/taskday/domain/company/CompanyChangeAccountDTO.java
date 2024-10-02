@@ -1,4 +1,8 @@
 package com.example.taskday.domain.company;
 
-public record CompanyChangeAccountDTO(String name, String addressStreet, String addressComplement, String addressNumber, String address, String city, String state, String postalCode,String email, String phoneNumber) {
+import java.util.Optional;
+
+public record CompanyChangeAccountDTO(Optional<String> name, Optional<String> addressStreet, Optional<String> addressComplement,
+                                      Optional<String> addressNumber, Optional<String> address, Optional<String> city,
+                                      Optional<String> state, Optional<String> postalCode, Optional<String> email, Optional<String> phoneNumber) {
 }

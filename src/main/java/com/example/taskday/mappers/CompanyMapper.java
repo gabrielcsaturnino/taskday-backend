@@ -5,6 +5,7 @@ import com.example.taskday.domain.company.CompanyJobVacancyListDTO;
 import com.example.taskday.domain.company.CompanyRegisterDTO;
 import com.example.taskday.domain.company.CompanyResponseDTO;
 import com.example.taskday.domain.employeeJobVacancy.EmployeeJobVacancy;
+import com.example.taskday.domain.exceptions.OperationException;
 import com.example.taskday.domain.jobVacancy.JobVacancy;
 
 import java.util.stream.Collectors;
@@ -31,7 +32,7 @@ public class CompanyMapper {
         return companyResponseDTO;
     }
 
-    public static Company registerDTOToCompany(CompanyRegisterDTO companyRegisterDTO) {
+    public static Company registerDTOToCompany(CompanyRegisterDTO companyRegisterDTO) throws OperationException {
         Company company = new Company();
         company.setName(companyRegisterDTO.name());
         company.setCnpj(companyRegisterDTO.cnpj());
@@ -40,7 +41,8 @@ public class CompanyMapper {
         company.setCity(companyRegisterDTO.city());
         company.setState(companyRegisterDTO.state());
         company.setAddressComplement(companyRegisterDTO.addressComplement());
-        company.setOwnerName(companyRegisterDTO.ownerName());
+        company.setPostalCode(companyRegisterDTO.postalCode());
+        company.setOwnerCpf(companyRegisterDTO.ownerCpf());
         company.setOwnerName(companyRegisterDTO.ownerName());
         company.setEmail(companyRegisterDTO.email());
         company.setPhoneNumber(companyRegisterDTO.phoneNumber());

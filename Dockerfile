@@ -10,7 +10,6 @@ COPY pom.xml .
 # Baixar as dependências do Maven (essa etapa será cacheada, então não vai precisar baixar de novo a cada build)
 RUN mvn dependency:go-offline -B
 
-# Copiar todo o projeto para o container
 COPY . .
 
 # Rodar o comando de build do Maven

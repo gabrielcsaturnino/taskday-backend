@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -29,40 +31,51 @@ public class EmployeeService {
 
         Employee employee = EmployeeMapper.registerDTOToEmployee(employeeRegisterDTO);
         employee.setPassword(encryptedPassword);
+        employee.setCreatedBy(LocalDate.now());
+        employee.setUpdatedBy(LocalDate.now());
         employeeRepository.save(employee);
     }
 
     public void changeAccount(EmployeeChangeAccountDTO employeeChangeAccountDTO, Employee employee) throws OperationException {
-        if(employeeRepository.existsByEmail(employeeChangeAccountDTO.email()) || companyRepository.existsByEmail(employeeChangeAccountDTO.email())){
-            throw new OperationException("Email ja cadastrado!");
+
+        if(employeeChangeAccountDTO.email().isPresent()){
+            if(employeeRepository.existsByEmail(employeeChangeAccountDTO.email().get()) || companyRepository.existsByEmail(employeeChangeAccountDTO.email().get())){
+                throw new OperationException("Email ja cadastrado!");
+            }
         }
-        employee.setFirstName(employeeChangeAccountDTO.firstName());
-        employee.setLastName(employeeChangeAccountDTO.lastName());
-        employee.setEmail(employeeChangeAccountDTO.email());
-        employee.setPhoneNumber(employeeChangeAccountDTO.phoneNumber());
-        employee.setCity(employeeChangeAccountDTO.city());
-        employee.setState(employeeChangeAccountDTO.state());
-        employee.setExperienceList(employeeChangeAccountDTO.experienceList());
-        employee.setAddress(employeeChangeAccountDTO.address());
-        employee.setAddressComplement(employeeChangeAccountDTO.addressComplement());
-        employee.setAddressNumber(employeeChangeAccountDTO.addressNumber());
-        employee.setAddressStreet(employeeChangeAccountDTO.addressStreet());
+
+        employeeChangeAccountDTO.firstName().ifPresent(employee :: setFirstName);
+        employeeChangeAccountDTO.lastName().ifPresent(employee :: setLastName);
+        employeeChangeAccountDTO.email().ifPresent(employee :: setEmail);
+        employeeChangeAccountDTO.phoneNumber().ifPresent(employee :: setPhoneNumber);
+        employeeChangeAccountDTO.city().ifPresent(employee :: setCity);
+        employeeChangeAccountDTO.experienceList().ifPresent(employee :: setExperienceList);
+        employeeChangeAccountDTO.address().ifPresent(employee :: setAddress);
+        employeeChangeAccountDTO.addressComplement().ifPresent(employee :: setAddressComplement);
+        employeeChangeAccountDTO.addressNumber().ifPresent(employee :: setAddressNumber);
+        employeeChangeAccountDTO.addressStreet().ifPresent(employee :: setAddressStreet);
+        employee.setUpdatedBy(LocalDate.now());
         employeeRepository.save(employee);
+
     }
+
+
 
     public void changePassword(String encryptedPassword, Employee employee){
         employee.setPassword(encryptedPassword);
+        employee.setUpdatedBy(LocalDate.now());
         employeeRepository.save(employee);
     }
 
     @Transactional
-    public EmployeeResponseDTO findEmployeeById(UUID employeeId) {
+    public EmployeeResponseDTO findEmployeeById(UUID employeeId) throws OperationException {
         Optional<Employee> employee = this.employeeRepository.findById(employeeId);
         if (!employee.isPresent()) {
-            throw new RuntimeException("Employee not found!");
+            throw new OperationException("Employee not found!");
         }
         return EmployeeMapper.employeeToEmployeeResponseDTO(employee.get());
     }
+
 
 
 }

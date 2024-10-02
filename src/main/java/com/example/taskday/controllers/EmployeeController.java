@@ -12,6 +12,7 @@ import com.example.taskday.services.EmployeeJobVacancyService;
 import com.example.taskday.services.EmployeeService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,41 +20,37 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/emp")
+@RequestMapping("/employees")
 public class EmployeeController {
-    @Autowired
-    EmployeeService employeeService;
 
     @Autowired
-    EmployeeJobVacancyService employeeJobVacancyService;
+    private EmployeeService employeeService;
 
+    @Autowired
+    private EmployeeJobVacancyService employeeJobVacancyService;
 
-    @GetMapping("/allSubscribeJob")
-    public ResponseEntity<List<EmployeeJobVacancyDTO>> getAllSubscribeJob() {
-        Authentication authemtication = SecurityContextHolder.getContext().getAuthentication();
-        Employee employee = (Employee) authemtication.getPrincipal();
-        List<EmployeeJobVacancyDTO> jobVacancyResponseDTOList;
-        jobVacancyResponseDTOList =  employeeJobVacancyService.getAllJobVacancyForEmployee(employee.getId());
-        return ResponseEntity.ok(jobVacancyResponseDTOList);
+    @GetMapping("/jobs/subscriptions")
+    public ResponseEntity<List<EmployeeJobVacancyDTO>> getAllSubscribedJobs() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Employee employee = (Employee) authentication.getPrincipal();
+        List<EmployeeJobVacancyDTO> jobVacancies = employeeJobVacancyService.getAllJobVacancyForEmployee(employee.getId());
+        return ResponseEntity.ok(jobVacancies);
     }
 
+    @DeleteMapping("/jobs/{jobVacancyId}/unsubscribe")
+    public ResponseEntity<Void> unsubscribe(@PathVariable UUID jobVacancyId) throws OperationException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Employee employee = (Employee) authentication.getPrincipal();
+        employeeJobVacancyService.unsubscribe(jobVacancyId, employee.getId());
+        return ResponseEntity.noContent().build();
+    }
 
-   @DeleteMapping("/unsubscribeToJobVacancy")
-   public ResponseEntity<List<EmployeeJobVacancyDTO>> unsubscribeToJobVacancy(@RequestParam("jobVacancyId") UUID jobId) throws OperationException {
-        Authentication authemtication = SecurityContextHolder.getContext().getAuthentication();
-        Employee employee = (Employee) authemtication.getPrincipal();
-        employeeJobVacancyService.unsubscribeFromJobVacancy(jobId,employee.getId());
-        List<EmployeeJobVacancyDTO> jobVacancyResponseDTOList;
-        jobVacancyResponseDTOList = employeeJobVacancyService.getAllJobVacancyForEmployee(employee.getId());
-        return ResponseEntity.ok(jobVacancyResponseDTOList);
-   }
-
-
-    @PostMapping("/subscribeToJob")
-    public ResponseEntity<JobVacancySubscribeDTO> subscribeToJobVacancy(@RequestBody JobVacancySubscribeDTO jobVacancySubscribeDTO) throws OperationException {
+    @PostMapping("/jobs/subscribe")
+    public ResponseEntity<JobVacancySubscribeDTO> subscribeToJob(@RequestBody @Valid JobVacancySubscribeDTO jobVacancySubscribeDTO) throws OperationException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Employee employee = (Employee) authentication.getPrincipal();
         employeeJobVacancyService.subscribeToJobVacancy(jobVacancySubscribeDTO.jobVacancyId(), employee.getId());
@@ -61,31 +58,31 @@ public class EmployeeController {
         return ResponseEntity.ok(new JobVacancySubscribeDTO(jobVacancySubscribeDTO.jobVacancyId(), employee.getId(), points));
     }
 
-    @PostMapping("/changeAccount")
-    public void changeAccount(@RequestBody @Valid EmployeeChangeAccountDTO employeeChangeAccountDTO) throws OperationException {
+    @PutMapping("/account")
+    public void updateAccount(@RequestBody @Valid EmployeeChangeAccountDTO employeeChangeAccountDTO) throws OperationException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Employee employee = (Employee) authentication.getPrincipal();
         employeeService.changeAccount(employeeChangeAccountDTO, employee);
     }
 
-    @PostMapping("/changePassword")
-    public void changePassword(@RequestBody @Valid String password) throws OperationException {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Employee employee = (Employee) authentication.getPrincipal();
-        if(password.length() <= 10){
-            throw new OperationException("Chave deve conter pelo menos 11 caracteres!");
+
+    @PutMapping("/password")
+    public void updatePassword(@RequestBody @Valid String password) throws OperationException {
+        if (password.length() <= 10) {
+            throw new OperationException("A senha deve ter pelo menos 11 caracteres!");
         }
         String encryptedPassword = new BCryptPasswordEncoder().encode(password);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Employee employee = (Employee) authentication.getPrincipal();
         employeeService.changePassword(encryptedPassword, employee);
     }
 
-
-
-    @GetMapping("/seeAllEmployee")
-    public ResponseEntity<EmployeeResponseDTO> seeEmployee() {
+    @GetMapping("/me")
+    public ResponseEntity<EmployeeResponseDTO> getEmployeeProfile() throws OperationException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Employee employee = (Employee) authentication.getPrincipal();
         EmployeeResponseDTO employeeResponseDTO = employeeService.findEmployeeById(employee.getId());
         return ResponseEntity.ok(employeeResponseDTO);
+
     }
 }

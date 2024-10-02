@@ -16,9 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -37,29 +35,21 @@ public class EmployeeJobVacancyService {
 
 
     @Transactional
-    public void unsubscribeFromJobVacancy(UUID jobVacancyId, UUID employeeId) throws OperationException {
-        Optional<JobVacancy> optionalJobVacancy = jobVacancyRepository.findById(jobVacancyId);
-        Optional<Employee> optionalEmployee = employeeRepository.findById(employeeId);
+    public void unsubscribe(UUID jobVacancyId, UUID employeeId) throws OperationException {
 
-        if (!optionalJobVacancy.isPresent()) {
-            throw new OperationException("Erro interno");
-        }
+        JobVacancy jobVacancy = jobVacancyRepository.findById(jobVacancyId)
+                .orElseThrow(() -> new OperationException("Vaga não encontrada"));
 
-        if (!optionalEmployee.isPresent()) {
-            throw new OperationException("Erro interno");
-        }
 
-        JobVacancy jobVacancy = optionalJobVacancy.get();
-        Employee employee = optionalEmployee.get();
+        Employee employee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new OperationException("Funcionário não encontrado"));
 
-        Optional<EmployeeJobVacancy> employeeJobVacancy = employeeJobVacancyRepository.findByEmployeeAndJobVacancy(employee, jobVacancy);
+        Optional<EmployeeJobVacancy> employeeJobVacancyOpt = employeeJobVacancyRepository.findByEmployeeAndJobVacancy(employee, jobVacancy);
 
-        if(employeeJobVacancy.isPresent()){
-            jobVacancy.getRegisteredEmployees().remove(employeeJobVacancy);
-            employee.getRegisteredJob().remove(employeeJobVacancy);
-            employeeRepository.save(employee);
-            jobVacancyRepository.save(jobVacancy);
-            employeeJobVacancyRepository.delete(employeeJobVacancy.get());
+        if (employeeJobVacancyOpt.isPresent()) {
+            employeeJobVacancyRepository.delete(employeeJobVacancyOpt.get());
+        } else {
+            throw new OperationException("Subscription not found");
         }
     }
 
@@ -67,29 +57,23 @@ public class EmployeeJobVacancyService {
 
     @Transactional
     public void subscribeToJobVacancy(UUID jobVacancyId, UUID employeeId) throws OperationException {
-        Optional<JobVacancy> optionalJobVacancy = jobVacancyRepository.findById(jobVacancyId);
-        Optional<Employee> optionalEmployee = employeeRepository.findById(employeeId);
 
-        if (!optionalJobVacancy.isPresent()) {
-            throw new OperationException("Erro interno");
-        }
-
-        if (!optionalEmployee.isPresent()) {
-            throw new OperationException("Erro interno");
-        }
-
-        JobVacancy jobVacancy = optionalJobVacancy.get();
-        Employee employee = optionalEmployee.get();
+        JobVacancy jobVacancy = jobVacancyRepository.findById(jobVacancyId)
+                .orElseThrow(() -> new OperationException("Vaga não encontrada"));
+        Employee employee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new OperationException("Funcionário não encontrado"));
 
         if(isEmployeeRegisteredForJobVacancy(employeeId, jobVacancyId)){
                  throw new OperationException("Você ja esta registrado nessa vaga!");
         }
 
-        EmployeeJobVacancy employeeJobVacancy = new EmployeeJobVacancy(employee, jobVacancy);
-
         if(jobVacancy.getStatus() == Status.INACTIVE){
             throw new OperationException("Vaga inativa!");
         }
+
+        EmployeeJobVacancy employeeJobVacancy = new EmployeeJobVacancy(employee, jobVacancy);
+
+
         employeeJobVacancyRepository.save(employeeJobVacancy);
         if(!jobVacancy.getDesiredExperience().isEmpty() && !employee.getExperienceList().isEmpty()) {
             this.setPoint(jobVacancyId, employeeId);
@@ -97,22 +81,15 @@ public class EmployeeJobVacancyService {
     }
 
     public double getPoints(UUID jobVacancyId, UUID employeeId) throws OperationException {
-        Optional<Employee> optionalEmployee = employeeRepository.findById(employeeId);
-        Optional<JobVacancy> optionalJobVacancy = jobVacancyRepository.findById(jobVacancyId);
+        JobVacancy jobVacancy = jobVacancyRepository.findById(jobVacancyId)
+                .orElseThrow(() -> new OperationException("Vaga não encontrada"));
+        Employee employee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new OperationException("Funcionário não encontrado"));
 
-        if (!optionalJobVacancy.isPresent()) {
-            throw new OperationException("Erro interno");
-        }
+        EmployeeJobVacancy employeeJobVacancy = employeeJobVacancyRepository.findByEmployeeAndJobVacancy(employee, jobVacancy)
+                .orElseThrow(() -> new OperationException("Erro interno"));
 
-        if (!optionalEmployee.isPresent()) {
-            throw new OperationException("Erro interno");
-        }
-        Optional<EmployeeJobVacancy> optionalEmployeeJobVacancy = employeeJobVacancyRepository.findByEmployeeAndJobVacancy(optionalEmployee.get(), optionalJobVacancy.get());
-        if(optionalEmployeeJobVacancy.isPresent()){
-            EmployeeJobVacancy employeeJobVacancy = optionalEmployeeJobVacancy.get();
-            return employeeJobVacancy.getPoint();
-        }
-        return 0;
+        return employeeJobVacancy.getPoint();
     }
 
 
@@ -125,39 +102,32 @@ public class EmployeeJobVacancyService {
     }
 
     public void setPoint(UUID jobVacancyId, UUID employeeId) throws OperationException {
-        Optional<Employee> optionalEmployee = employeeRepository.findById(employeeId);
-        Optional<JobVacancy> optionalJobVacancy = jobVacancyRepository.findById(jobVacancyId);
+        JobVacancy jobVacancy = jobVacancyRepository.findById(jobVacancyId)
+                .orElseThrow(() -> new OperationException("Vaga não encontrada"));
+        Employee employee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new OperationException("Funcionário não encontrado"));
 
-        if (!optionalJobVacancy.isPresent()) {
-            throw new OperationException("Erro interno");
-        }
+        EmployeeJobVacancy employeeJobVacancy = employeeJobVacancyRepository.findByEmployeeAndJobVacancy(employee, jobVacancy)
+                .orElseThrow(() -> new OperationException("Erro interno"));
 
-        if (!optionalEmployee.isPresent()) {
-            throw new OperationException("Erro interno");
-        }
-        Optional<EmployeeJobVacancy> optionalEmployeeJobVacancy = employeeJobVacancyRepository.findByEmployeeAndJobVacancy(optionalEmployee.get(), optionalJobVacancy.get());
-        if (optionalEmployeeJobVacancy.isPresent()) {
-            EmployeeJobVacancy employeeJobVacancy = optionalEmployeeJobVacancy.get();
-            JobVacancy jobVacancy = optionalJobVacancy.get();
-            Employee employee = optionalEmployee.get();
-            int points = 0;
-            for(int i = 0; i<jobVacancy.getDesiredExperience().size(); i++){
-                for(int j = 0; j<employee.getExperienceList().size(); j++){
-                    if(employee.getExperienceList().get(j).equals(jobVacancy.getDesiredExperience().get(i))){
-                        points = points + 200;
-                        employeeJobVacancy.setPoint(points);
-                    }
+
+        int points = 0;
+        Set<String> desiredExperienceSet = new HashSet<>(jobVacancy.getDesiredExperience());
+
+        if (!desiredExperienceSet.isEmpty()) {
+            for (String experience : employee.getExperienceList()) {
+                if (desiredExperienceSet.contains(experience)) {
+                    points += 200;
                 }
             }
-
-            employeeRepository.save(employee);
-            jobVacancyRepository.save(jobVacancy);
-            employeeJobVacancyRepository.save(employeeJobVacancy);
-        }else {
-            throw new OperationException("Erro interno");
         }
 
+        employeeRepository.save(employee);
+        jobVacancyRepository.save(jobVacancy);
+        employeeJobVacancyRepository.save(employeeJobVacancy);
+
     }
+
     public List<EmployeeRegisteredDTO> getAllEmployeeRegisteredByJobVacancy(UUID jobVacancyId) {
         return employeeJobVacancyRepository.findByJobVacancy_Id(jobVacancyId)
                 .stream()

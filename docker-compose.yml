@@ -31,7 +31,6 @@ services:
                   -Djava.rmi.server.hostname=localhost"
     ports:
       - "8080:8080"
-
       - "8443:8443"
 
     depends_on:
@@ -39,6 +38,14 @@ services:
     networks:
       - backend
 
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - backend
 
 volumes:
   postgres-data:

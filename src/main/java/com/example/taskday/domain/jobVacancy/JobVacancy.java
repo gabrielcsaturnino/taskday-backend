@@ -40,8 +40,9 @@ public class JobVacancy {
 
 
     @NotNull(message = "Esse campo não pode ser nulo")
-    @NegativeOrZero(message = "Esse campo deve ser maior que zero")
+    @PositiveOrZero(message = "Esse campo deve ser maior ou igual a zero")
     private Double dayValue;
+
 
     @NotNull(message = "Esse campo não pode ser nulo")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
@@ -52,8 +53,9 @@ public class JobVacancy {
     @NegativeOrZero(message = "Esse campo deve ser maior que zero")
     private int totalHoursJob;
 
-    @OneToMany(mappedBy = "jobVacancy", fetch = FetchType.EAGER)
-    private List<EmployeeJobVacancy> registeredEmployees = new ArrayList<>();
+    @OneToMany(mappedBy = "jobVacancy", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<EmployeeJobVacancy> employeeJobVacancies = new ArrayList<>();
+
 
     @ManyToOne
     @JoinColumn(name = "company_id")

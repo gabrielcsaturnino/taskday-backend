@@ -4,6 +4,7 @@ import com.example.taskday.domain.company.Company;
 import com.example.taskday.domain.employeeJobVacancy.EmployeeJobVacancy;
 import com.example.taskday.domain.exceptions.OperationException;
 import com.example.taskday.domain.jobVacancy.JobVacancy;
+import com.example.taskday.domain.jobVacancy.JobVacancyChange;
 import com.example.taskday.domain.jobVacancy.JobVacancyRequestDTO;
 import com.example.taskday.domain.jobVacancy.JobVacancyResponseDTO;
 import com.example.taskday.mappers.JobVacancyMapper;
@@ -38,9 +39,7 @@ public class JobVacancyService {
         if(company.getId() == null){
             throw new OperationException ("Erro interno");
         }
-        if(jobVacancyRequestDTO.jobDate().isBefore(LocalDate.now())){
-            throw  new OperationException("Selecione um horário válido");
-        }
+
         JobVacancy jobVacancy = JobVacancyMapper.requestDTOToJobVacancy(jobVacancyRequestDTO, company);
         jobVacancy.setCompany(company);
         jobVacancyRepository.save(jobVacancy);
@@ -66,33 +65,31 @@ public class JobVacancyService {
             throw new OperationException("Erro ao deletar vaga!!");
         }
 
+        company.getJobList().size(); // Isso força a inicialização da lista
         company.getJobList().removeIf(job -> job.getId().equals(jobVacancyId));
         jobVacancy.setCompany(null);
         companyRepository.save(company);
         jobVacancyRepository.delete(jobVacancy);
-        employeeJobVacancyRepository.deleteAll(employeeJobVacancy);
+
     }
 
     @Transactional
-    public void changeJobVacancy(UUID uuid, JobVacancyRequestDTO jobVacancyRequestDTO, Company company) throws OperationException {
+    public void changeJobVacancy(UUID uuid, JobVacancyChange jobVacancyChange, Company company) throws OperationException {
         JobVacancy jobVacancy = jobVacancyRepository.getReferenceById(uuid);
         if(!jobVacancy.getCompany().getId().equals(company.getId())){
             throw new OperationException("Erro ao modificar vaga!");
         }
 
-        if(jobVacancyRequestDTO.jobDate().isBefore(LocalDate.now())){
-            throw new OperationException("Selecione um horário válido");
-        }
+        jobVacancyChange.title().ifPresent(jobVacancy :: setTitle);
+        jobVacancyChange.dayValue().ifPresent(jobVacancy :: setDayValue);
+        jobVacancyChange.jobDate().ifPresent(jobVacancy :: setJobDate);
+        jobVacancyChange.totalHoursJob().ifPresent(jobVacancy :: setTotalHoursJob);
+        jobVacancyChange.city().ifPresent(jobVacancy :: setCity);
+        jobVacancyChange.state().ifPresent(jobVacancy :: setState);
+        jobVacancyChange.desiredExperience().ifPresent(jobVacancy :: setDesiredExperience);
+        jobVacancyChange.description().ifPresent(jobVacancy :: setDescription);
+        jobVacancyChange.status().ifPresent(jobVacancy :: setStatus);
 
-
-        jobVacancy.setState(jobVacancyRequestDTO.state());
-        jobVacancy.setCity(jobVacancyRequestDTO.city());
-        jobVacancy.setJobDate(jobVacancyRequestDTO.jobDate());
-        jobVacancy.setDesiredExperience(jobVacancyRequestDTO.desiredExperience());
-        jobVacancy.setStatus(jobVacancyRequestDTO.status());
-        jobVacancy.setTitle(jobVacancyRequestDTO.title());
-        jobVacancy.setDayValue(jobVacancyRequestDTO.dayValue());
-        jobVacancy.setTotalHoursJob(jobVacancyRequestDTO.totalHoursJob());
         jobVacancyRepository.save(jobVacancy);
     }
 

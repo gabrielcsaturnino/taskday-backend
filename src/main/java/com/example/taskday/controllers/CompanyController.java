@@ -20,38 +20,35 @@ import java.util.List;
 
 
 @RestController
-@RequestMapping("/company")
+@RequestMapping("/companies")
 public class CompanyController {
 
     @Autowired
     private CompanyService companyService;
 
-
-    @GetMapping("/getAllCompanies")
-    public ResponseEntity getAllCompanies() {
-        List<CompanyResponseDTO> companiesId = companyService.seeAllCompanies();
-        return ResponseEntity.ok(companiesId);
+    @GetMapping("/comp")
+    public ResponseEntity<List<CompanyResponseDTO>> getAllCompanies() {
+        List<CompanyResponseDTO> companies = companyService.seeAllCompanies();
+        return ResponseEntity.ok(companies);
     }
 
-
-    @PutMapping("/changeAccount")
-    public void changeAccount(CompanyChangeAccountDTO companyChangeAccountDTO) throws OperationException {
+    @PutMapping("/account")
+    public void updateAccount(@RequestBody @Valid CompanyChangeAccountDTO companyChangeAccountDTO) throws OperationException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Company company = (Company) authentication.getPrincipal();
         companyService.changeAccount(companyChangeAccountDTO, company);
     }
 
-    @PutMapping("/changePassword")
-    public void changePassword(@RequestBody @Valid String password) throws OperationException {
-        if(password.length() <= 10){
-            throw new OperationException("Chave deve conter pelo menos 11 caracteres!");
+
+    @PutMapping("/password")
+    public void updatePassword(@RequestBody @Valid String password) throws OperationException {
+        if (password.length() <= 10) {
+            throw new OperationException("A senha deve ter pelo menos 11 caracteres!");
         }
         String encryptedPassword = new BCryptPasswordEncoder().encode(password);
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Company company = (Company) authentication.getPrincipal();
         companyService.changePassword(encryptedPassword, company);
     }
-
-
-
 }
+

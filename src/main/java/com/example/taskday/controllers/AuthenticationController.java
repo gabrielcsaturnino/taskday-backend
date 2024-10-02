@@ -12,6 +12,7 @@ import com.example.taskday.repositories.CompanyRepository;
 import com.example.taskday.repositories.EmployeeRepository;
 import com.example.taskday.services.CompanyService;
 import com.example.taskday.services.EmployeeService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -34,10 +35,10 @@ import java.util.List;
 public class AuthenticationController {
 
     @Autowired
-     private AuthenticationManager authenticationManager;
+    private AuthenticationManager authenticationManager;
 
     @Autowired
-     private EmployeeRepository employeeRepository;
+    private EmployeeRepository employeeRepository;
 
     @Autowired
     private CompanyRepository companyRepository;
@@ -48,66 +49,53 @@ public class AuthenticationController {
     @Autowired
     private TokensService tokensService;
 
-
     @Autowired
     private CompanyService companyService;
 
-
-    @PostMapping("/login")
-    public ResponseEntity login(@RequestBody @Validated EmployeeAuthenticationDTO employeeAuthenticationDTO ) {
+    @PostMapping("/login/employee")
+    public ResponseEntity<EmployeeLoginResponseDTO> loginEmployee(@RequestBody @Valid EmployeeAuthenticationDTO employeeAuthenticationDTO) {
         var usernamePassword = new UsernamePasswordAuthenticationToken(employeeAuthenticationDTO.email(), employeeAuthenticationDTO.password());
         var auth = this.authenticationManager.authenticate(usernamePassword);
         var token = tokensService.generateEmployeeToken((Employee) auth.getPrincipal());
         return ResponseEntity.ok(new EmployeeLoginResponseDTO(token, auth.getAuthorities()));
     }
 
-
-    @PostMapping("/register")
-    public ResponseEntity register(@RequestBody @Validated EmployeeRegisterDTO employeeRegisterDTO) throws OperationException {
-        if(employeeRegisterDTO.password().length() <= 10){
-            throw new OperationException("Chave deve conter pelo menos 11 caracteres!");
-        }
-          String encryptedPassword = new BCryptPasswordEncoder().encode(employeeRegisterDTO.password());
-          employeeService.createEmployee(employeeRegisterDTO, encryptedPassword);
-          return ResponseEntity.ok().build();
-    }
-
-
-    @PostMapping("/register/company")
-    public ResponseEntity companyRegister(@RequestBody @Validated CompanyRegisterDTO companyRegisterDTO) throws OperationException {
-        if(companyRegisterDTO.password().length() <= 10){
-            throw new OperationException("Chave deve conter pelo menos 11 caracteres!");
-        }
-        String encryptedPassword = new BCryptPasswordEncoder().encode(companyRegisterDTO.password());
-        companyService.createCompany(companyRegisterDTO, encryptedPassword);
-        return ResponseEntity.ok().build();
-    }
-
     @PostMapping("/login/company")
-    public ResponseEntity companyLogin(@RequestBody @Validated CompanyAuthenticationDTO companyAuthenticationDTO ) {
+    public ResponseEntity<CompanyLoginResponseDTO> loginCompany(@RequestBody @Valid CompanyAuthenticationDTO companyAuthenticationDTO) {
         var usernamePassword = new UsernamePasswordAuthenticationToken(companyAuthenticationDTO.email(), companyAuthenticationDTO.password());
         var auth = this.authenticationManager.authenticate(usernamePassword);
         var token = tokensService.generateCompanyToken((Company) auth.getPrincipal());
         return ResponseEntity.ok(new CompanyLoginResponseDTO(token, auth.getAuthorities()));
     }
 
-    @GetMapping("/isCompany")
-    public boolean isCompany(Authentication authentication) {
-        var role_type = authentication.getAuthorities().stream().findFirst().get().getAuthority();
-        if(role_type.equals("ROLE_COMPANY")){
-            return true;
-        }else{
-            return false;
+    @PostMapping("/register/employee")
+    public ResponseEntity<Void> registerEmployee(@RequestBody @Valid EmployeeRegisterDTO employeeRegisterDTO) throws OperationException {
+        if (employeeRegisterDTO.password().length() <= 10) {
+            throw new OperationException("A senha deve ter pelo menos 11 caracteres!");
         }
+        String encryptedPassword = new BCryptPasswordEncoder().encode(employeeRegisterDTO.password());
+        employeeService.createEmployee(employeeRegisterDTO, encryptedPassword);
+        return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/isEmployee")
-    public boolean isEmployee(Authentication authentication) {
-        var role_type = authentication.getAuthorities().stream().findFirst().get().getAuthority();
-        if(role_type.equals("ROLE_EMPLOYEE")){
-            return true;
-        }else{
-            return false;
+    @PostMapping("/register/company")
+    public ResponseEntity<Void> registerCompany(@RequestBody @Valid CompanyRegisterDTO companyRegisterDTO) throws OperationException {
+        if (companyRegisterDTO.password().length() <= 10) {
+            throw new OperationException("A senha deve ter pelo menos 11 caracteres!");
         }
+        String encryptedPassword = new BCryptPasswordEncoder().encode(companyRegisterDTO.password());
+        companyService.createCompany(companyRegisterDTO, encryptedPassword);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/role/company")
+    public ResponseEntity<Boolean> isCompany(Authentication authentication) {
+        return ResponseEntity.ok(authentication.getAuthorities().stream().anyMatch(auth -> auth.getAuthority().equals("ROLE_COMPANY")));
+    }
+
+    @GetMapping("/role/employee")
+    public ResponseEntity<Boolean> isEmployee(Authentication authentication) {
+        return ResponseEntity.ok(authentication.getAuthorities().stream().anyMatch(auth -> auth.getAuthority().equals("ROLE_EMPLOYEE")));
     }
 }
+

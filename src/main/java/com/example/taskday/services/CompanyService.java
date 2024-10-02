@@ -13,6 +13,7 @@ import com.example.taskday.repositories.EmployeeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import java.util.stream.Collectors;
@@ -30,24 +31,11 @@ public class CompanyService {
            throw new OperationException("Empresa ja cadastrada");
         }
 
-        try {
-            CPFValidator cpfValidator = new CPFValidator();
-            cpfValidator.assertValid(companyRegisterDTO.ownerCpf());
-        }catch (Exception e){
-           throw new OperationException("CPF invalido");
-        }
-
-
-        try {
-            CNPJValidator cnpjValidator = new CNPJValidator();
-            cnpjValidator.assertValid(companyRegisterDTO.cnpj());
-        }catch (Exception e){
-           throw  new OperationException("CNPJ invalido");
-        }
-
 
         Company company = CompanyMapper.registerDTOToCompany(companyRegisterDTO);
         company.setPassword(encryptedPassword);
+        company.setCreatedBy(LocalDate.now());
+        company.setUpdatedBy(LocalDate.now());
         companyRepository.save(company);
     }
 
@@ -61,25 +49,33 @@ public class CompanyService {
 
     public void changeAccount(CompanyChangeAccountDTO companyChangeAccountDTO, Company company) throws OperationException {
 
-        if(companyRepository.existsByEmail(companyChangeAccountDTO.email()) || companyRepository.existsByName(companyChangeAccountDTO.name())){
-            throw new OperationException("Empresa ja cadastrada");
+        if(companyChangeAccountDTO.email().isPresent()) {
+            if (employeeRepository.existsByEmail(companyChangeAccountDTO.email().get())
+                    || companyRepository.existsByEmail(companyChangeAccountDTO.email().get())
+                    || companyRepository.existsByName(companyChangeAccountDTO.name().get())) {
+                throw new OperationException("Empresa ja cadastrada");
+            }
         }
 
-        company.setName(companyChangeAccountDTO.name());
-        company.setAddress(companyChangeAccountDTO.address());
-        company.setAddressComplement(companyChangeAccountDTO.addressComplement());
-        company.setAddressNumber(companyChangeAccountDTO.addressNumber());
-        company.setAddressStreet(companyChangeAccountDTO.addressStreet());
-        company.setCity(companyChangeAccountDTO.city());
-        company.setState(companyChangeAccountDTO.state());
-        company.setPhoneNumber(companyChangeAccountDTO.phoneNumber());
-        company.setPostalCode(companyChangeAccountDTO.postalCode());
-        company.setEmail(companyChangeAccountDTO.email());
+        companyChangeAccountDTO.name().ifPresent(company :: setName);
+        companyChangeAccountDTO.address().ifPresent(company :: setAddress);
+        companyChangeAccountDTO.addressComplement().ifPresent(company :: setAddressComplement);
+        companyChangeAccountDTO.addressStreet().ifPresent(company :: setAddressStreet);
+        companyChangeAccountDTO.addressNumber().ifPresent(company :: setAddressNumber);
+        companyChangeAccountDTO.city().ifPresent(company :: setCity);
+        companyChangeAccountDTO.state().ifPresent(company :: setState);
+        companyChangeAccountDTO.phoneNumber().ifPresent(company :: setPhoneNumber);
+        companyChangeAccountDTO.postalCode().ifPresent(company :: setPostalCode);
+        companyChangeAccountDTO.email().ifPresent(company :: setEmail);
+        companyChangeAccountDTO.name().ifPresent(company :: setName);
+        companyChangeAccountDTO.name().ifPresent(company :: setName);
+        company.setUpdatedBy(LocalDate.now());
         companyRepository.save(company);
     }
 
     public void changePassword(String password, Company company){
         company.setPassword(password);
+        company.setUpdatedBy(LocalDate.now());
         companyRepository.save(company);
     }
 }
