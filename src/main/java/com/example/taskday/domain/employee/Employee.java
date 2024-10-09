@@ -85,6 +85,10 @@ public class Employee implements UserDetails{
     private List<EmployeeJobVacancy> registeredJob = new ArrayList<>();
 
 
+    private boolean enabled = false;
+
+    private String confirmationCode;
+
     @CreatedDate
     private LocalDate createdBy;
 
@@ -106,7 +110,7 @@ public class Employee implements UserDetails{
         this.addressNumber = addressNumber;
         this.address = address;
         this.dateOfBirth = dateOfBirth;
-        this.roleType = RoleType.EMPLOYEE;
+
 
     }
 
@@ -124,7 +128,11 @@ public class Employee implements UserDetails{
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_EMPLOYEE"));
+        if (this.roleType == RoleType.INACTIVE) {
+            return List.of(new SimpleGrantedAuthority("ROLE_INACTIVE"));
+        } else {
+            return List.of(new SimpleGrantedAuthority("ROLE_EMPLOYEE"));
+        }
     }
 
     @Override
@@ -149,8 +157,7 @@ public class Employee implements UserDetails{
 
     @Override
     public boolean isEnabled() {
-        return UserDetails.super.isEnabled();
+        return this.enabled;
     }
-
 
 }

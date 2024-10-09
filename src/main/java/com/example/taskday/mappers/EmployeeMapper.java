@@ -1,45 +1,39 @@
 package com.example.taskday.mappers;
 
 import com.example.taskday.domain.employee.Employee;
-import com.example.taskday.domain.employee.EmployeeRegisterDTO;
-import com.example.taskday.domain.employee.EmployeeRegisteredDTO;
+import com.example.taskday.domain.employee.EmployeeCreateRequestDTO;
 import com.example.taskday.domain.employee.EmployeeResponseDTO;
-import com.example.taskday.domain.employeeJobVacancy.EmployeeJobVacancy;
 import com.example.taskday.domain.exceptions.OperationException;
-import jakarta.transaction.Transactional;
-
-import java.util.stream.Collectors;
 
 public class EmployeeMapper {
-    public static Employee registerDTOToEmployee(EmployeeRegisterDTO employeeRegisterDTO) throws OperationException {
+    public static Employee registerDTOToEmployee(EmployeeCreateRequestDTO employeeCreateRequestDTO) throws OperationException {
         Employee employee = new Employee();
-        employee.setFirstName(employeeRegisterDTO.firstName());
-        employee.setLastName(employeeRegisterDTO.lastName());
-        employee.setEmail(employeeRegisterDTO.email());
-        employee.setPhoneNumber(employeeRegisterDTO.phoneNumber());
-        employee.setPassword(employeeRegisterDTO.password());
-        employee.setCpf(employeeRegisterDTO.cpf());
-        employee.setExperienceList(employeeRegisterDTO.experienceList());
-        employee.setCity(employeeRegisterDTO.city());
-        employee.setState(employeeRegisterDTO.state());
-        employee.setPostalCode(employeeRegisterDTO.postalCode());
-        employee.setAddressStreet(employeeRegisterDTO.addressStreet());
-        employee.setAddress(employeeRegisterDTO.address());
-        employee.setAddressComplement(employeeRegisterDTO.addressComplement());
-        employee.setAddressNumber(employeeRegisterDTO.addressNumber());
-        employee.setDateOfBirth(employeeRegisterDTO.dateOfBirth());
+        employee.setFirstName(employeeCreateRequestDTO.firstName());
+        employee.setLastName(employeeCreateRequestDTO.lastName());
+        employee.setEmail(employeeCreateRequestDTO.email());
+        employee.setPhoneNumber(employeeCreateRequestDTO.phoneNumber());
+        employee.setPassword(employeeCreateRequestDTO.password());
+        employee.setCpf(employeeCreateRequestDTO.cpf());
+        employee.setExperienceList(employeeCreateRequestDTO.experienceList());
+        employee.setCity(employeeCreateRequestDTO.city());
+        employee.setState(employeeCreateRequestDTO.state());
+        employee.setPostalCode(employeeCreateRequestDTO.postalCode());
+        employee.setAddressStreet(employeeCreateRequestDTO.addressStreet());
+        employee.setAddress(employeeCreateRequestDTO.address());
+        employee.setAddressComplement(employeeCreateRequestDTO.addressComplement());
+        employee.setAddressNumber(employeeCreateRequestDTO.addressNumber());
+        employee.setDateOfBirth(employeeCreateRequestDTO.dateOfBirth());
         return employee;
     }
 
 
     public static EmployeeResponseDTO employeeToEmployeeResponseDTO(Employee employee){
-        EmployeeResponseDTO employeeResponseDTO = new EmployeeResponseDTO(
+        EmployeeResponseDTO employeeResponseDTO = EmployeeResponseDTO.fullEmployee(
                 employee.getId(),
                 employee.getFirstName(),
                 employee.getLastName(),
                 employee.getEmail(),
                 employee.getPhoneNumber(),
-                employee.getCpf(),
                 employee.getExperienceList(),
                 employee.getCity(),
                 employee.getState(),
@@ -48,30 +42,29 @@ public class EmployeeMapper {
                 employee.getAddressComplement(),
                 employee.getAddressNumber(),
                 employee.getAddress(),
-                employee.getDateOfBirth(),
-                employee.getRegisteredJob()
-                        .stream()
-                        .map(employeeJobVacancy -> EmployeeJobVacancyMapper.listJobVacancyToEmployeeDTO(employeeJobVacancy.getJobVacancy())).collect(Collectors.toList()),
-                employee.getCreatedBy()
-
+                employee.getDateOfBirth()
         );
 
         return employeeResponseDTO;
     }
 
-    public static EmployeeRegisteredDTO employeeToEmployeeRegisteredDTO(Employee employee, EmployeeJobVacancy employeeJobVacancy){
-        EmployeeRegisteredDTO employeeRegisteredDTO = new EmployeeRegisteredDTO(
+
+    public static EmployeeResponseDTO partialEmployee(Employee employee){
+        EmployeeResponseDTO employeeResponseDTO = EmployeeResponseDTO.partialEmployee(
                 employee.getFirstName(),
                 employee.getLastName(),
-                employee.getEmail(),
                 employee.getPhoneNumber(),
                 employee.getExperienceList(),
                 employee.getCity(),
                 employee.getState(),
-                employeeJobVacancy.getPoint()
+                employee.getAddress(),
+                employee.getDateOfBirth()
         );
-        return employeeRegisteredDTO;
+
+        return employeeResponseDTO;
     }
+
+
 
 
 }

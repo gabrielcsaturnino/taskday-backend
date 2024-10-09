@@ -89,6 +89,10 @@ public class Company implements UserDetails {
     @LastModifiedDate
     private LocalDate updatedBy;
 
+    private String confirmationCode;
+
+    private boolean enabled = false;
+
     public Company(String name, String addressStreet, String addressComplement, String addressNumber, String address, String city, String state, String postalCode, String password, String email, String phoneNumber,String ownerName) {
         this.name = name;
         this.addressStreet = addressStreet;
@@ -102,7 +106,7 @@ public class Company implements UserDetails {
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.ownerName = ownerName;
-        this.roleType =  RoleType.COMPANY;
+
 
     }
 
@@ -129,7 +133,11 @@ public class Company implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_COMPANY"));
+        if (this.roleType == RoleType.INACTIVE) {
+            return List.of(new SimpleGrantedAuthority("ROLE_INACTIVE"));
+        } else {
+            return List.of(new SimpleGrantedAuthority("ROLE_COMPANY"));
+        }
     }
 
     @Override
@@ -154,6 +162,6 @@ public class Company implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return UserDetails.super.isEnabled();
+        return this.enabled;
     }
 }

@@ -1,10 +1,11 @@
 package com.example.taskday.controllers;
 
 import com.example.taskday.domain.company.Company;
-import com.example.taskday.domain.employee.EmployeeRegisteredDTO;
+import com.example.taskday.domain.employeeJobVacancy.EmployeeJobVacancyResponseDTO;
 import com.example.taskday.domain.exceptions.OperationException;
-import com.example.taskday.domain.jobVacancy.JobVacancyChange;
-import com.example.taskday.domain.jobVacancy.JobVacancyRequestDTO;
+import com.example.taskday.domain.jobVacancy.JobVacancyChangeRequestDTO;
+import com.example.taskday.domain.jobVacancy.JobVacancyCreateRequestDTO;
+import com.example.taskday.domain.jobVacancy.JobVacancyFiltersRequestDTO;
 import com.example.taskday.domain.jobVacancy.JobVacancyResponseDTO;
 import com.example.taskday.services.EmployeeJobVacancyService;
 import com.example.taskday.services.JobVacancyService;
@@ -30,10 +31,10 @@ public class JobVacancyController {
     private EmployeeJobVacancyService employeeJobVacancyService;
 
     @PostMapping
-    public ResponseEntity<Void> addJobVacancy(@RequestBody @Valid JobVacancyRequestDTO jobVacancyRequestDTO) throws OperationException {
+    public ResponseEntity<Void> addJobVacancy(@RequestBody @Valid JobVacancyCreateRequestDTO jobVacancyCreateRequestDTO) throws OperationException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Company company = (Company) authentication.getPrincipal();
-        jobVacancyService.createJobVacancy(jobVacancyRequestDTO, company);
+        jobVacancyService.createJobVacancy(jobVacancyCreateRequestDTO, company);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
@@ -43,9 +44,14 @@ public class JobVacancyController {
         return ResponseEntity.ok(jobVacancies);
     }
 
+    //@GetMapping("/filter")
+    //public ResponseEntity<List<JobVacancyResponseDTO>> getFiltredJobVacancies(@RequestBody JobVacancyFiltersRequestDTO jobVacancyFiltersRequestDTO){
+
+   // }
+
     @GetMapping("/{jobVacancyId}/employees")
-    public ResponseEntity<List<EmployeeRegisteredDTO>> getRegisteredEmployees(@PathVariable UUID jobVacancyId) {
-        List<EmployeeRegisteredDTO> registeredEmployees = employeeJobVacancyService.getAllEmployeeRegisteredByJobVacancy(jobVacancyId);
+    public ResponseEntity<List<EmployeeJobVacancyResponseDTO>> getRegisteredEmployees(@PathVariable UUID jobVacancyId) {
+        List<EmployeeJobVacancyResponseDTO> registeredEmployees = employeeJobVacancyService.getAllEmployeeRegisteredByJobVacancy(jobVacancyId);
         return ResponseEntity.ok(registeredEmployees);
     }
 
@@ -58,7 +64,7 @@ public class JobVacancyController {
     }
 
     @PutMapping("/{jobVacancyId}")
-    public ResponseEntity<Void> updateJobVacancy(@PathVariable UUID jobVacancyId, @RequestBody @Valid JobVacancyChange jobVacancyChange) throws OperationException {
+    public ResponseEntity<Void> updateJobVacancy(@PathVariable UUID jobVacancyId, @RequestBody @Valid JobVacancyChangeRequestDTO jobVacancyChange) throws OperationException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Company company = (Company) authentication.getPrincipal();
         jobVacancyService.changeJobVacancy(jobVacancyId, jobVacancyChange, company);

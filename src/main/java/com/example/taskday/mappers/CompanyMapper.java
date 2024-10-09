@@ -1,21 +1,15 @@
 package com.example.taskday.mappers;
 
 import com.example.taskday.domain.company.Company;
-import com.example.taskday.domain.company.CompanyJobVacancyListDTO;
-import com.example.taskday.domain.company.CompanyRegisterDTO;
+import com.example.taskday.domain.company.CompanyCreateRequestDTO;
 import com.example.taskday.domain.company.CompanyResponseDTO;
-import com.example.taskday.domain.employeeJobVacancy.EmployeeJobVacancy;
 import com.example.taskday.domain.exceptions.OperationException;
-import com.example.taskday.domain.jobVacancy.JobVacancy;
-
-import java.util.stream.Collectors;
 
 
 public class CompanyMapper {
-    public static CompanyResponseDTO toResponseDTO(Company company) {
-        CompanyResponseDTO companyResponseDTO = new CompanyResponseDTO(
+    public static CompanyResponseDTO completeCompany(Company company) {
+        CompanyResponseDTO companyResponseDTO =  CompanyResponseDTO.completeCompany(
                 company.getId(),
-                company.getCnpj(),
                 company.getName(),
                 company.getAddressStreet(),
                 company.getAddressComplement(),
@@ -26,38 +20,40 @@ public class CompanyMapper {
                 company.getPostalCode(),
                 company.getEmail(),
                 company.getPhoneNumber(),
-                company.getOwnerName(),
-                company.getJobList().stream().map(jobVacancy -> listJobVacancyToCompany(jobVacancy)).collect(Collectors.toList())
+                company.getOwnerName()
         );
         return companyResponseDTO;
     }
 
-    public static Company registerDTOToCompany(CompanyRegisterDTO companyRegisterDTO) throws OperationException {
-        Company company = new Company();
-        company.setName(companyRegisterDTO.name());
-        company.setCnpj(companyRegisterDTO.cnpj());
-        company.setPassword(companyRegisterDTO.password());
-        company.setAddress(companyRegisterDTO.address());
-        company.setCity(companyRegisterDTO.city());
-        company.setState(companyRegisterDTO.state());
-        company.setAddressComplement(companyRegisterDTO.addressComplement());
-        company.setPostalCode(companyRegisterDTO.postalCode());
-        company.setOwnerCpf(companyRegisterDTO.ownerCpf());
-        company.setOwnerName(companyRegisterDTO.ownerName());
-        company.setEmail(companyRegisterDTO.email());
-        company.setPhoneNumber(companyRegisterDTO.phoneNumber());
-        company.setAddressStreet(companyRegisterDTO.addressStreet());
-        company.setAddressNumber(companyRegisterDTO.addressNumber());
-        return company;
+    public static CompanyResponseDTO listCompany(Company company) {
+        CompanyResponseDTO companyResponseDTO =  CompanyResponseDTO.partialCompany(
+                company.getId(),
+                company.getName(),
+                company.getAddress(),
+                company.getCity(),
+                company.getState()
+
+        );
+        return companyResponseDTO;
     }
 
-    public static CompanyJobVacancyListDTO listJobVacancyToCompany(JobVacancy jobVacancy) {
-        CompanyJobVacancyListDTO companyJobVacancyListDTO = new CompanyJobVacancyListDTO(
-                jobVacancy.getId(),
-                jobVacancy.getTitle(),
-                jobVacancy.getDescription()
-        );
-        return companyJobVacancyListDTO;
+    public static Company registerDTOToCompany(CompanyCreateRequestDTO companyCreateRequestDTO) throws OperationException {
+        Company company = new Company();
+        company.setName(companyCreateRequestDTO.name());
+        company.setCnpj(companyCreateRequestDTO.cnpj());
+        company.setPassword(companyCreateRequestDTO.password());
+        company.setAddress(companyCreateRequestDTO.address());
+        company.setCity(companyCreateRequestDTO.city());
+        company.setState(companyCreateRequestDTO.state());
+        company.setAddressComplement(companyCreateRequestDTO.addressComplement());
+        company.setPostalCode(companyCreateRequestDTO.postalCode());
+        company.setOwnerCpf(companyCreateRequestDTO.ownerCpf());
+        company.setOwnerName(companyCreateRequestDTO.ownerName());
+        company.setEmail(companyCreateRequestDTO.email());
+        company.setPhoneNumber(companyCreateRequestDTO.phoneNumber());
+        company.setAddressStreet(companyCreateRequestDTO.addressStreet());
+        company.setAddressNumber(companyCreateRequestDTO.addressNumber());
+        return company;
     }
 
 }

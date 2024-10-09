@@ -2,17 +2,16 @@ package com.example.taskday.controllers;
 
 
 import com.example.taskday.domain.employee.Employee;
-import com.example.taskday.domain.employee.EmployeeChangeAccountDTO;
-import com.example.taskday.domain.employee.EmployeeRegisterDTO;
+import com.example.taskday.domain.employee.EmployeeChangeAccountRequestDTO;
 import com.example.taskday.domain.employee.EmployeeResponseDTO;
-import com.example.taskday.domain.employeeJobVacancy.EmployeeJobVacancyDTO;
 import com.example.taskday.domain.exceptions.OperationException;
-import com.example.taskday.domain.jobVacancy.JobVacancySubscribeDTO;
+import com.example.taskday.domain.jobVacancy.JobVacancyResponseDTO;
+import com.example.taskday.domain.jobVacancy.JobVacancySubscribeRequestDTO;
+import com.example.taskday.services.EmailService;
 import com.example.taskday.services.EmployeeJobVacancyService;
 import com.example.taskday.services.EmployeeService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,12 +19,15 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/employees")
 public class EmployeeController {
+
+
+    @Autowired
+    private EmailService emailService;
 
     @Autowired
     private EmployeeService employeeService;
@@ -34,10 +36,10 @@ public class EmployeeController {
     private EmployeeJobVacancyService employeeJobVacancyService;
 
     @GetMapping("/jobs/subscriptions")
-    public ResponseEntity<List<EmployeeJobVacancyDTO>> getAllSubscribedJobs() {
+    public ResponseEntity<List<JobVacancyResponseDTO>> getAllSubscribedJobs() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Employee employee = (Employee) authentication.getPrincipal();
-        List<EmployeeJobVacancyDTO> jobVacancies = employeeJobVacancyService.getAllJobVacancyForEmployee(employee.getId());
+        List<JobVacancyResponseDTO> jobVacancies = employeeJobVacancyService.getAllJobVacancyForEmployee(employee.getId());
         return ResponseEntity.ok(jobVacancies);
     }
 
@@ -50,19 +52,18 @@ public class EmployeeController {
     }
 
     @PostMapping("/jobs/subscribe")
-    public ResponseEntity<JobVacancySubscribeDTO> subscribeToJob(@RequestBody @Valid JobVacancySubscribeDTO jobVacancySubscribeDTO) throws OperationException {
+    public ResponseEntity<JobVacancySubscribeRequestDTO> subscribeToJob(@RequestBody @Valid JobVacancySubscribeRequestDTO jobVacancySubscribeRequestDTO) throws OperationException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Employee employee = (Employee) authentication.getPrincipal();
-        employeeJobVacancyService.subscribeToJobVacancy(jobVacancySubscribeDTO.jobVacancyId(), employee.getId());
-        double points = employeeJobVacancyService.getPoints(jobVacancySubscribeDTO.jobVacancyId(), employee.getId());
-        return ResponseEntity.ok(new JobVacancySubscribeDTO(jobVacancySubscribeDTO.jobVacancyId(), employee.getId(), points));
+        employeeJobVacancyService.subscribeToJobVacancy(jobVacancySubscribeRequestDTO.jobVacancyId(), employee.getId());
+        return ResponseEntity.ok().build();
     }
 
     @PutMapping("/account")
-    public void updateAccount(@RequestBody @Valid EmployeeChangeAccountDTO employeeChangeAccountDTO) throws OperationException {
+    public void updateAccount(@RequestBody @Valid EmployeeChangeAccountRequestDTO employeeChangeAccountRequestDTO) throws OperationException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Employee employee = (Employee) authentication.getPrincipal();
-        employeeService.changeAccount(employeeChangeAccountDTO, employee);
+        employeeService.changeAccount(employeeChangeAccountRequestDTO, employee);
     }
 
 
@@ -81,8 +82,15 @@ public class EmployeeController {
     public ResponseEntity<EmployeeResponseDTO> getEmployeeProfile() throws OperationException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Employee employee = (Employee) authentication.getPrincipal();
-        EmployeeResponseDTO employeeResponseDTO = employeeService.findEmployeeById(employee.getId());
-        return ResponseEntity.ok(employeeResponseDTO);
-
+        EmployeeResponseDTO employeeResponseDTO = employeeService.findEmployee(employee);
+        return ResponseEntity.ok().body(employeeResponseDTO);
     }
+
+    @GetMapping()
+    public ResponseEntity<EmployeeResponseDTO> getPartialProfile(@RequestParam @Valid UUID employeeId) throws OperationException {
+        EmployeeResponseDTO employeeResponseDTO = employeeService.findPartialEmployee(employeeId);
+        return ResponseEntity.ok().body(employeeResponseDTO);
+    }
+
+
 }

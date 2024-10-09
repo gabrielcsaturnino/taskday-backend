@@ -1,11 +1,12 @@
 package com.example.taskday.services;
 
 import com.example.taskday.domain.employee.Employee;
-import com.example.taskday.domain.employee.EmployeeRegisteredDTO;
+
 import com.example.taskday.domain.employeeJobVacancy.EmployeeJobVacancy;
-import com.example.taskday.domain.employeeJobVacancy.EmployeeJobVacancyDTO;
+import com.example.taskday.domain.employeeJobVacancy.EmployeeJobVacancyResponseDTO;
 import com.example.taskday.domain.exceptions.OperationException;
 import com.example.taskday.domain.jobVacancy.JobVacancy;
+import com.example.taskday.domain.jobVacancy.JobVacancyResponseDTO;
 import com.example.taskday.enums.Status;
 import com.example.taskday.mappers.EmployeeJobVacancyMapper;
 import com.example.taskday.mappers.EmployeeMapper;
@@ -73,65 +74,24 @@ public class EmployeeJobVacancyService {
 
         EmployeeJobVacancy employeeJobVacancy = new EmployeeJobVacancy(employee, jobVacancy);
 
-
+        employeeJobVacancy.setPoint();
         employeeJobVacancyRepository.save(employeeJobVacancy);
-        if(!jobVacancy.getDesiredExperience().isEmpty() && !employee.getExperienceList().isEmpty()) {
-            this.setPoint(jobVacancyId, employeeId);
-        }
-    }
-
-    public double getPoints(UUID jobVacancyId, UUID employeeId) throws OperationException {
-        JobVacancy jobVacancy = jobVacancyRepository.findById(jobVacancyId)
-                .orElseThrow(() -> new OperationException("Vaga não encontrada"));
-        Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new OperationException("Funcionário não encontrado"));
-
-        EmployeeJobVacancy employeeJobVacancy = employeeJobVacancyRepository.findByEmployeeAndJobVacancy(employee, jobVacancy)
-                .orElseThrow(() -> new OperationException("Erro interno"));
-
-        return employeeJobVacancy.getPoint();
     }
 
 
-    public List<EmployeeJobVacancyDTO> getAllJobVacancyForEmployee(UUID employeeId) {
+    public List<JobVacancyResponseDTO> getAllJobVacancyForEmployee(UUID employeeId) {
 
-        List<EmployeeJobVacancy> jobVacancyResponseDTOList = employeeJobVacancyRepository.findByEmployee_Id(employeeId);
-        return jobVacancyResponseDTOList
+        List<EmployeeJobVacancy> JobVacancyResponseDTO = employeeJobVacancyRepository.findByEmployee_Id(employeeId);
+        return JobVacancyResponseDTO
                 .stream()
-                .map(EmployeeJobVacancy :: getJobVacancy).map(EmployeeJobVacancyMapper:: listJobVacancyToEmployeeDTO).collect(Collectors.toList());
+                .map(EmployeeJobVacancy :: getJobVacancy).map(EmployeeJobVacancyMapper::listJobVacancy).collect(Collectors.toList());
     }
 
-    public void setPoint(UUID jobVacancyId, UUID employeeId) throws OperationException {
-        JobVacancy jobVacancy = jobVacancyRepository.findById(jobVacancyId)
-                .orElseThrow(() -> new OperationException("Vaga não encontrada"));
-        Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new OperationException("Funcionário não encontrado"));
 
-        EmployeeJobVacancy employeeJobVacancy = employeeJobVacancyRepository.findByEmployeeAndJobVacancy(employee, jobVacancy)
-                .orElseThrow(() -> new OperationException("Erro interno"));
-
-
-        int points = 0;
-        Set<String> desiredExperienceSet = new HashSet<>(jobVacancy.getDesiredExperience());
-
-        if (!desiredExperienceSet.isEmpty()) {
-            for (String experience : employee.getExperienceList()) {
-                if (desiredExperienceSet.contains(experience)) {
-                    points += 200;
-                }
-            }
-        }
-
-        employeeRepository.save(employee);
-        jobVacancyRepository.save(jobVacancy);
-        employeeJobVacancyRepository.save(employeeJobVacancy);
-
-    }
-
-    public List<EmployeeRegisteredDTO> getAllEmployeeRegisteredByJobVacancy(UUID jobVacancyId) {
+    public List<EmployeeJobVacancyResponseDTO> getAllEmployeeRegisteredByJobVacancy(UUID jobVacancyId) {
         return employeeJobVacancyRepository.findByJobVacancy_Id(jobVacancyId)
                 .stream()
-                .map(employeeJobVacancy -> EmployeeMapper.employeeToEmployeeRegisteredDTO(employeeJobVacancy.getEmployee(), employeeJobVacancy))
+                .map(employeeJobVacancy -> EmployeeJobVacancyMapper.listEmployee(employeeJobVacancy.getEmployee(), employeeJobVacancy))
                 .collect(Collectors.toList());
     }
 

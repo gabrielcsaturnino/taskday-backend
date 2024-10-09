@@ -50,7 +50,7 @@ public class JobVacancy {
     private LocalDate jobDate;
 
     @NotNull(message = "Esse campo não pode ser nulo")
-    @NegativeOrZero(message = "Esse campo deve ser maior que zero")
+    @PositiveOrZero(message = "Esse campo deve ser maior ou igual a zero")
     private int totalHoursJob;
 
     @OneToMany(mappedBy = "jobVacancy", cascade = CascadeType.ALL, orphanRemoval = true)
