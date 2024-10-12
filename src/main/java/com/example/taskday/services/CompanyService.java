@@ -32,8 +32,13 @@ public class CompanyService {
 
 
     public void createCompany(CompanyCreateRequestDTO companyCreateRequestDTO, String encryptedPassword) throws OperationException {
-        if(companyRepository.existsByEmail(companyCreateRequestDTO.email()) || companyRepository.existsByName(companyCreateRequestDTO.name()) || companyRepository.existsByCnpj(companyCreateRequestDTO.cnpj())){
-           throw new OperationException("Empresa ja cadastrada");
+        if(companyRepository.existsByEmail(companyCreateRequestDTO.email())
+                || companyRepository.existsByName(companyCreateRequestDTO.name())
+                || companyRepository.existsByCnpj(companyCreateRequestDTO.cnpj())
+                || employeeRepository.existsByEmail(companyCreateRequestDTO.email())
+                || employeeRepository.existsByCpf(companyCreateRequestDTO.ownerCpf())
+        ){
+           throw new OperationException("Erro ao cadastrar empresa! Verifique os dados inseridos.");
         }
 
 
@@ -47,11 +52,14 @@ public class CompanyService {
         company.setRoleType(RoleType.INACTIVE);
         company.setEnabled(true);
         companyRepository.save(company);
+        if(!companyRepository.existsByEmail(company.getEmail())){
+            throw new OperationException("Erro!");
+        }
     }
 
     public void confirmationAccount(Company company, String code) throws OperationException {
         if(company.getConfirmationCode().equals(code)){
-            company.setRoleType(RoleType.EMPLOYEE);
+            company.setRoleType(RoleType.COMPANY);
             company.setConfirmationCode(null);
             company.setEnabled(true);
             companyRepository.save(company);
@@ -122,9 +130,13 @@ public class CompanyService {
         companyRepository.save(company);
     }
 
-    public void changePassword(String password, Company company){
-        company.setPassword(password);
-        company.setUpdatedBy(LocalDate.now());
+    public void changePassword(String encryptedPassword, Company company, String code) throws OperationException {
+        if(!company.getConfirmationCode().equals(code)){
+            throw new OperationException("Código inválido!");
+        }
+
+        company.setConfirmationCode(null);
+        company.setPassword(encryptedPassword);
         companyRepository.save(company);
     }
 }

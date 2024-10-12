@@ -51,6 +51,8 @@ public class JobVacancyController {
 
     @GetMapping("/{jobVacancyId}/employees")
     public ResponseEntity<List<EmployeeJobVacancyResponseDTO>> getRegisteredEmployees(@PathVariable UUID jobVacancyId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Company company = (Company) authentication.getPrincipal();
         List<EmployeeJobVacancyResponseDTO> registeredEmployees = employeeJobVacancyService.getAllEmployeeRegisteredByJobVacancy(jobVacancyId);
         return ResponseEntity.ok(registeredEmployees);
     }

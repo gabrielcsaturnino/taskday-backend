@@ -4,6 +4,7 @@ package com.example.taskday.controllers;
 import com.example.taskday.domain.employee.Employee;
 import com.example.taskday.domain.employee.EmployeeChangeAccountRequestDTO;
 import com.example.taskday.domain.employee.EmployeeResponseDTO;
+import com.example.taskday.domain.employee.PasswordChangeRequestDTO;
 import com.example.taskday.domain.exceptions.OperationException;
 import com.example.taskday.domain.jobVacancy.JobVacancyResponseDTO;
 import com.example.taskday.domain.jobVacancy.JobVacancySubscribeRequestDTO;
@@ -52,7 +53,7 @@ public class EmployeeController {
     }
 
     @PostMapping("/jobs/subscribe")
-    public ResponseEntity<JobVacancySubscribeRequestDTO> subscribeToJob(@RequestBody @Valid JobVacancySubscribeRequestDTO jobVacancySubscribeRequestDTO) throws OperationException {
+    public ResponseEntity<?> subscribeToJob(@RequestBody @Valid JobVacancySubscribeRequestDTO jobVacancySubscribeRequestDTO) throws OperationException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Employee employee = (Employee) authentication.getPrincipal();
         employeeJobVacancyService.subscribeToJobVacancy(jobVacancySubscribeRequestDTO.jobVacancyId(), employee.getId());
@@ -60,23 +61,34 @@ public class EmployeeController {
     }
 
     @PutMapping("/account")
-    public void updateAccount(@RequestBody @Valid EmployeeChangeAccountRequestDTO employeeChangeAccountRequestDTO) throws OperationException {
+    public ResponseEntity<?> updateAccount(@RequestBody @Valid EmployeeChangeAccountRequestDTO employeeChangeAccountRequestDTO) throws OperationException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Employee employee = (Employee) authentication.getPrincipal();
         employeeService.changeAccount(employeeChangeAccountRequestDTO, employee);
+        return ResponseEntity.ok().build();
     }
 
 
     @PutMapping("/password")
-    public void updatePassword(@RequestBody @Valid String password) throws OperationException {
-        if (password.length() <= 10) {
+    public void updatePassword(@RequestBody @Valid PasswordChangeRequestDTO passwordChangeRequestDTO) throws OperationException {
+        if (passwordChangeRequestDTO.password().length() <= 10) {
             throw new OperationException("A senha deve ter pelo menos 11 caracteres!");
         }
-        String encryptedPassword = new BCryptPasswordEncoder().encode(password);
+        String encryptedPassword = new BCryptPasswordEncoder().encode(passwordChangeRequestDTO.password());
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Employee employee = (Employee) authentication.getPrincipal();
-        employeeService.changePassword(encryptedPassword, employee);
+        employeeService.changePassword(encryptedPassword, employee, passwordChangeRequestDTO.code());
     }
+
+    @PostMapping("/request-password-change")
+    public ResponseEntity<?> requestPasswordChange() throws OperationException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Employee employee = (Employee) authentication.getPrincipal();
+        employeeService.resendConfirmationCode(employee.getEmail());
+        return ResponseEntity.ok("Código enviado!");
+    }
+
+
 
     @GetMapping("/me")
     public ResponseEntity<EmployeeResponseDTO> getEmployeeProfile() throws OperationException {

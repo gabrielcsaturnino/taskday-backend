@@ -3,6 +3,7 @@ package com.example.taskday.domain.employee;
 import br.com.caelum.stella.validation.CPFValidator;
 import com.example.taskday.domain.employeeJobVacancy.EmployeeJobVacancy;
 import com.example.taskday.domain.exceptions.OperationException;
+import com.example.taskday.domain.validations.MinAge;
 import com.example.taskday.enums.RoleType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
@@ -77,6 +78,7 @@ public class Employee implements UserDetails{
 
     @NotNull(message = "Esse campo não pode ser nulo")
     @PastOrPresent(message = "Selecione uma data valida!")
+    @MinAge(value = 18, message = "O usuário deve ter pelo menos 18 anos")
     private LocalDate dateOfBirth;
 
     private RoleType roleType;

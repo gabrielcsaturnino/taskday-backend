@@ -27,8 +27,11 @@ public class EmployeeService {
 
     public void createEmployee(EmployeeCreateRequestDTO employeeCreateRequestDTO, String encryptedPassword) throws OperationException {
 
-        if (employeeRepository.existsByEmail(employeeCreateRequestDTO.email()) || companyRepository.existsByEmail(employeeCreateRequestDTO.email())) {
-            throw new OperationException("Email ja cadastrado!");
+        if (employeeRepository.existsByEmail(employeeCreateRequestDTO.email())
+                || companyRepository.existsByEmail(employeeCreateRequestDTO.email())
+                || employeeRepository.existsByCpf(employeeCreateRequestDTO.cpf())
+                || companyRepository.existsByOwnerCpf(employeeCreateRequestDTO.cpf())) {
+            throw new OperationException("Erro ao cadastrar! Verifique os dados inseridos.");
         }
 
         Employee employee = EmployeeMapper.registerDTOToEmployee(employeeCreateRequestDTO);
@@ -41,6 +44,9 @@ public class EmployeeService {
         employee.setRoleType(RoleType.INACTIVE);
         employee.setEnabled(true);
         employeeRepository.save(employee);
+        if(!employeeRepository.existsByEmail(employee.getEmail())){
+            throw new OperationException("Erro!");
+        }
     }
 
     public void confirmationAccount(Employee employee, String code) throws OperationException {
@@ -60,16 +66,16 @@ public class EmployeeService {
     }
 
     public void resendConfirmationCode(String email) throws OperationException {
-        Employee employee = (Employee) employeeRepository.findByEmail(email);
-        if(employee.getRoleType() == RoleType.INACTIVE){
-            employee.setConfirmationCode(generateConfirmationCode());
-            employeeRepository.save(employee);
-            emailService.sendEmail(email, employee.getConfirmationCode());
+        if(employeeRepository.existsByEmail(email)){
+            Employee employee = (Employee) employeeRepository.findByEmail(email);
+                employee.setConfirmationCode(generateConfirmationCode());
+                employeeRepository.save(employee);
+                emailService.sendEmail(email, employee.getConfirmationCode());
         }else {
-            throw new OperationException("Usuário ja autenticado!");
+            throw new OperationException("Email não cadastrado!");
         }
-
     }
+
 
     private String generateConfirmationCode() {
         Random random = new Random();
@@ -102,11 +108,16 @@ public class EmployeeService {
 
 
 
-    public void changePassword(String encryptedPassword, Employee employee){
+    public void changePassword(String encryptedPassword, Employee employee, String code) throws OperationException {
+        if(!employee.getConfirmationCode().equals(code)){
+            throw new OperationException("Código inválido!");
+        }
+
+        employee.setConfirmationCode(null);
         employee.setPassword(encryptedPassword);
-        employee.setUpdatedBy(LocalDate.now());
         employeeRepository.save(employee);
     }
+
 
     @Transactional
     public EmployeeResponseDTO findEmployee(Employee employee) throws OperationException {

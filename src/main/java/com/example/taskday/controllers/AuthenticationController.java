@@ -18,9 +18,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.stream.Collectors;
 
 
 @RestController
@@ -50,7 +53,9 @@ public class AuthenticationController {
         var usernamePassword = new UsernamePasswordAuthenticationToken(employeeAuthenticationRequestDTO.email(), employeeAuthenticationRequestDTO.password());
         var auth = this.authenticationManager.authenticate(usernamePassword);
         var token = tokensService.generateEmployeeToken((Employee) auth.getPrincipal());
-        return ResponseEntity.ok(new EmployeeLoginResponseDTO(token, auth.getAuthorities()));
+
+
+        return ResponseEntity.ok(new EmployeeLoginResponseDTO(token, auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList())));
     }
 
     @PostMapping("/login/company")
@@ -58,7 +63,7 @@ public class AuthenticationController {
         var usernamePassword = new UsernamePasswordAuthenticationToken(companyAuthenticationRequestDTO.email(), companyAuthenticationRequestDTO.password());
         var auth = this.authenticationManager.authenticate(usernamePassword);
         var token = tokensService.generateCompanyToken((Company) auth.getPrincipal());
-        return ResponseEntity.ok(new CompanyLoginResponseDTO(token, auth.getAuthorities()));
+        return ResponseEntity.ok(new CompanyLoginResponseDTO(token, auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList())));
     }
 
     @PostMapping("/register/employee")
@@ -72,8 +77,10 @@ public class AuthenticationController {
         var usernamePassword = new UsernamePasswordAuthenticationToken(employeeCreateRequestDTO.email(), employeeCreateRequestDTO.password());
         var auth = this.authenticationManager.authenticate(usernamePassword);
         var token = tokensService.generateEmployeeToken((Employee) auth.getPrincipal());
-        employeeRepository.save((Employee) auth.getPrincipal());
 
+
+        ((Employee) auth.getPrincipal()).setEnabled(false);
+        employeeRepository.save((Employee) auth.getPrincipal());
         return ResponseEntity.ok(token);
     }
 
@@ -88,6 +95,7 @@ public class AuthenticationController {
         var usernamePassword = new UsernamePasswordAuthenticationToken(companyCreateRequestDTO.email(), companyCreateRequestDTO.password());
         var auth = this.authenticationManager.authenticate(usernamePassword);
         var token = tokensService.generateCompanyToken((Company) auth.getPrincipal());
+
         ((Company) auth.getPrincipal()).setEnabled(false);
         companyRepository.save((Company) auth.getPrincipal());
         return ResponseEntity.ok(token);
@@ -97,19 +105,22 @@ public class AuthenticationController {
     @PostMapping("/confirmcode")
     public ResponseEntity confirmCode(@RequestParam String code) throws OperationException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if(authentication.getPrincipal().equals(Employee.class)){
+        Object principal = authentication.getPrincipal();
+
+        if(principal instanceof Employee){
             Employee employee = (Employee) authentication.getPrincipal();
             employeeService.confirmationAccount(employee, code);
+            return ResponseEntity.ok().build();
         }
 
-        if(authentication.getPrincipal().equals(Company.class)){
+        if(principal instanceof Company){
             Company company = (Company) authentication.getPrincipal();
             companyService.confirmationAccount(company, code);
+            return ResponseEntity.ok().build();
         }
 
+        return ResponseEntity.badRequest().build();
 
-
-        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/resendcode")

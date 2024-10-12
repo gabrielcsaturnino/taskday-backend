@@ -30,7 +30,6 @@ services:
                   -Dcom.sun.management.jmxremote.ssl=false \
                   -Djava.rmi.server.hostname=localhost"
     ports:
-      - "8080:8080"
       - "8443:8443"
       - "587:587"
 
@@ -48,9 +47,37 @@ services:
     networks:
       - backend
 
+
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    environment:
+          SPRING_DATASOURCE_URL: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
+          SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.h2.Driver
+          SPRING_DATASOURCE_USERNAME: sa
+          SPRING_DATASOURCE_PASSWORD: password
+          SPRING_JPA_HIBERNATE_DDL_AUTO: update
+          SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.H2Dialect
+          SPRING_MAIL_HOST: smtp.gmail.com
+          SPRING_MAIL_PORT: 587
+          SPRING_MAIL_USERNAME: gabrielcebasaturnino@gmail.com
+          SPRING_MAIL_PASSWORD: hzag_pryw_veco_ruyr  # Verifique as credenciais reais
+          SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: true
+          SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: true
+          SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_REQUIRED: true
+          SPRING_H2_CONSOLE_ENABLED: true
+          SPRING_H2_CONSOLE_PATH: /h2-console
+    ports:
+      - "8080:8080"
+    networks:
+        - test-network
+
 volumes:
   postgres-data:
 
 networks:
   backend:
     driver: bridge
+  test-network:
+

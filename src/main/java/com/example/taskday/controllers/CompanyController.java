@@ -4,6 +4,8 @@ package com.example.taskday.controllers;
 import com.example.taskday.domain.company.Company;
 import com.example.taskday.domain.company.CompanyChangeAccountRequestDTO;
 import com.example.taskday.domain.company.CompanyResponseDTO;
+import com.example.taskday.domain.employee.Employee;
+import com.example.taskday.domain.employee.PasswordChangeRequestDTO;
 import com.example.taskday.domain.exceptions.OperationException;
 import com.example.taskday.services.CompanyService;
 import jakarta.validation.Valid;
@@ -40,14 +42,22 @@ public class CompanyController {
 
 
     @PutMapping("/password")
-    public void updatePassword(@RequestBody @Valid String password) throws OperationException {
-        if (password.length() <= 10) {
+    public void updatePassword(@RequestBody @Valid PasswordChangeRequestDTO passwordChangeRequestDTO) throws OperationException {
+        if (passwordChangeRequestDTO.password().length() <= 10) {
             throw new OperationException("A senha deve ter pelo menos 11 caracteres!");
         }
-        String encryptedPassword = new BCryptPasswordEncoder().encode(password);
+        String encryptedPassword = new BCryptPasswordEncoder().encode(passwordChangeRequestDTO.password());
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Company company = (Company) authentication.getPrincipal();
-        companyService.changePassword(encryptedPassword, company);
+        companyService.changePassword(encryptedPassword, company, passwordChangeRequestDTO.code());
+    }
+
+    @PostMapping("/request-password-change")
+    public ResponseEntity<?> requestPasswordChange() throws OperationException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Company company = (Company) authentication.getPrincipal();
+        companyService.resendConfirmationCode(company.getEmail());
+        return ResponseEntity.ok("Código enviado!");
     }
 
 
