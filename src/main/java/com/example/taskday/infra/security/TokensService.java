@@ -17,10 +17,11 @@ import java.time.ZoneOffset;
 @Service
 public class TokensService {
 
-    @Value("${api.secutiry.token.secret}")
+    @Value("${api.security.token.secret}")
     private String secret;
 
     public String generateEmployeeToken(Employee employee) {
+
         try{
            Algorithm algorithm = Algorithm.HMAC256(secret);
            String token = JWT.create()
@@ -34,6 +35,7 @@ public class TokensService {
         }
     }
     public String generateCompanyToken(Company company) {
+
         try{
             Algorithm algorithm = Algorithm.HMAC256(secret);
             String token = JWT.create()
@@ -46,6 +48,7 @@ public class TokensService {
             throw new RuntimeException("Error generating token", exception);
         }
     }
+
 
 
     public String verifyToken(String token) {

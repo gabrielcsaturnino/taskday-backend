@@ -16,7 +16,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 @Component
-public class SecurityFilter extends OncePerRequestFilter {
+public class   SecurityFilter extends OncePerRequestFilter {
 
     @Autowired
     private TokensService tokensService;
@@ -45,7 +45,7 @@ public class SecurityFilter extends OncePerRequestFilter {
         }
         filterChain.doFilter(request, response);
         }catch (NullPointerException e) {
-            throw new RuntimeException("UserDetails is null", e);
+            throw new RuntimeException("UserDetails is null");
         }
     }
 

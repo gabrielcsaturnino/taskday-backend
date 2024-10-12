@@ -1,119 +1,142 @@
 package com.example.taskday.services;
 
-import com.example.taskday.domain.employee.Employee;
-import com.example.taskday.domain.employee.EmployeeRegisterDTO;
-import com.example.taskday.domain.employee.EmployeeRequestDTO;
-import com.example.taskday.domain.employee.EmployeeResponseDTO;
+import com.example.taskday.domain.employee.*;
 
-import com.example.taskday.domain.jobVacancy.JobVacancyResponseDTO;
+import com.example.taskday.domain.exceptions.OperationException;
+import com.example.taskday.enums.RoleType;
+import com.example.taskday.mappers.EmployeeMapper;
+import com.example.taskday.repositories.CompanyRepository;
 import com.example.taskday.repositories.EmployeeRepository;
-import com.example.taskday.repositories.JobVacancyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
+import java.time.LocalDate;
 import java.util.Optional;
+import java.util.Random;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 public class EmployeeService {
     @Autowired
     EmployeeRepository employeeRepository;
-
-
     @Autowired
-    JobVacancyRepository jobVacancyRepository;
+    CompanyRepository companyRepository;
+    @Autowired
+    EmailService emailService;
+
+    public void createEmployee(EmployeeCreateRequestDTO employeeCreateRequestDTO, String encryptedPassword) throws OperationException {
+
+        if (employeeRepository.existsByEmail(employeeCreateRequestDTO.email())
+                || companyRepository.existsByEmail(employeeCreateRequestDTO.email())
+                || employeeRepository.existsByCpf(employeeCreateRequestDTO.cpf())
+                || companyRepository.existsByOwnerCpf(employeeCreateRequestDTO.cpf())) {
+            throw new OperationException("Erro ao cadastrar! Verifique os dados inseridos.");
+        }
+
+        Employee employee = EmployeeMapper.registerDTOToEmployee(employeeCreateRequestDTO);
+        employee.setPassword(encryptedPassword);
+        employee.setCreatedBy(LocalDate.now());
+        employee.setUpdatedBy(LocalDate.now());
+
+        employee.setConfirmationCode(generateConfirmationCode());
+        emailService.sendEmail(employee.getEmail(), employee.getConfirmationCode());
+        employee.setRoleType(RoleType.INACTIVE);
+        employee.setEnabled(true);
+        employeeRepository.save(employee);
+        if(!employeeRepository.existsByEmail(employee.getEmail())){
+            throw new OperationException("Erro!");
+        }
+    }
+
+    public void confirmationAccount(Employee employee, String code) throws OperationException {
+
+        if(employee.getRoleType() == RoleType.EMPLOYEE){
+            throw new OperationException("Usuário ja foi autenticado!");
+        }
+
+        if(employee.getConfirmationCode().equals(code)){
+            employee.setRoleType(RoleType.EMPLOYEE);
+            employee.setConfirmationCode(null);
+            employee.setEnabled(true);
+            employeeRepository.save(employee);
+        }else {
+            throw new OperationException("Código de confirmação inválido!");
+        }
+    }
+
+    public void resendConfirmationCode(String email) throws OperationException {
+        if(employeeRepository.existsByEmail(email)){
+            Employee employee = (Employee) employeeRepository.findByEmail(email);
+                employee.setConfirmationCode(generateConfirmationCode());
+                employeeRepository.save(employee);
+                emailService.sendEmail(email, employee.getConfirmationCode());
+        }else {
+            throw new OperationException("Email não cadastrado!");
+        }
+    }
+
+
+    private String generateConfirmationCode() {
+        Random random = new Random();
+        int code = 100000 + random.nextInt(900000); // Gera um código de 6 dígitos
+        return String.valueOf(code);
+    }
+
+    public void changeAccount(EmployeeChangeAccountRequestDTO employeeChangeAccountRequestDTO, Employee employee) throws OperationException {
+
+        if(employeeChangeAccountRequestDTO.email().isPresent()){
+            if(employeeRepository.existsByEmail(employeeChangeAccountRequestDTO.email().get()) || companyRepository.existsByEmail(employeeChangeAccountRequestDTO.email().get())){
+                throw new OperationException("Email ja cadastrado!");
+            }
+        }
+
+        employeeChangeAccountRequestDTO.firstName().ifPresent(employee :: setFirstName);
+        employeeChangeAccountRequestDTO.lastName().ifPresent(employee :: setLastName);
+        employeeChangeAccountRequestDTO.email().ifPresent(employee :: setEmail);
+        employeeChangeAccountRequestDTO.phoneNumber().ifPresent(employee :: setPhoneNumber);
+        employeeChangeAccountRequestDTO.city().ifPresent(employee :: setCity);
+        employeeChangeAccountRequestDTO.experienceList().ifPresent(employee :: setExperienceList);
+        employeeChangeAccountRequestDTO.address().ifPresent(employee :: setAddress);
+        employeeChangeAccountRequestDTO.addressComplement().ifPresent(employee :: setAddressComplement);
+        employeeChangeAccountRequestDTO.addressNumber().ifPresent(employee :: setAddressNumber);
+        employeeChangeAccountRequestDTO.addressStreet().ifPresent(employee :: setAddressStreet);
+        employee.setUpdatedBy(LocalDate.now());
+        employeeRepository.save(employee);
+
+    }
 
 
 
+    public void changePassword(String encryptedPassword, Employee employee, String code) throws OperationException {
+        if(!employee.getConfirmationCode().equals(code)){
+            throw new OperationException("Código inválido!");
+        }
 
-    public void createEmployee(EmployeeRegisterDTO employeeRegisterDTO, String encryptedPassword) {
-        Employee employee = this.registerDTOToEmployee(employeeRegisterDTO);
+        employee.setConfirmationCode(null);
         employee.setPassword(encryptedPassword);
         employeeRepository.save(employee);
     }
 
-    public EmployeeResponseDTO findEmployeeById(UUID employeeId) {
-        Optional<Employee> employee = this.employeeRepository.findById(employeeId);
-        if (!employee.isPresent()) {
-            throw new RuntimeException("Employee not found!");
+
+    @Transactional
+    public EmployeeResponseDTO findEmployee(Employee employee) throws OperationException {
+        Optional<Employee> employee1 = this.employeeRepository.findById(employee.getId());
+        if (!employee1.isPresent()) {
+            throw new OperationException("Funcionario não foi encontrado!");
         }
-        return convertToEmployeeResponseDTO(employee.get());
+        return EmployeeMapper.employeeToEmployeeResponseDTO(employee1.get());
     }
 
 
-
-
-
-
-    public EmployeeResponseDTO convertToEmployeeResponseDTO(Employee employee) {
-        return new EmployeeResponseDTO(
-                employee.getID(),
-                employee.getFirstName(),
-                employee.getLastName(),
-                employee.getEmail(),
-                employee.getPhoneNumber(),
-                employee.getPassword(),
-                employee.getCpf(),
-                employee.getExperienceList().stream().map(Object :: toString ).collect(Collectors.toList()),
-                employee.getCity(),
-                employee.getState(),
-                employee.getPostalCode(),
-                employee.getAddressStreet(),
-                employee.getAddressComplement(),
-                employee.getAddressNumber(),
-                employee.getAddress(),
-                employee.getDateOfBirth(),
-                employee.getRegisteredJob()
-        );
+    @Transactional
+    public EmployeeResponseDTO findPartialEmployee(UUID employeeId) throws OperationException {
+        Optional<Employee> employee1 = this.employeeRepository.findById(employeeId);
+        if (!employee1.isPresent()) {
+            throw new OperationException("Funcionario não foi encontrado!");
+        }
+        return EmployeeMapper.partialEmployee(employee1.get());
     }
-
-
-
-
-    public Employee registerDTOToEmployee(EmployeeRegisterDTO employeeRegisterDTO) {
-        return new Employee(
-                employeeRegisterDTO.firstName(),
-                employeeRegisterDTO.lastName(),
-                employeeRegisterDTO.email(),
-                employeeRegisterDTO.phoneNumber(),
-                employeeRegisterDTO.password(),
-                employeeRegisterDTO.cpf(),
-                employeeRegisterDTO.experienceList(),
-                employeeRegisterDTO.city(),
-                employeeRegisterDTO.state(),
-                employeeRegisterDTO.postalCode(),
-                employeeRegisterDTO.addressStreet(),
-                employeeRegisterDTO.addressComplement(),
-                employeeRegisterDTO.addressNumber(),
-                employeeRegisterDTO.address(),
-                employeeRegisterDTO.dateOfBirth());
-    }
-
-
-
-    public Employee convertToEmployee(EmployeeRequestDTO employeeRequestDTO) {
-        return new Employee(
-                employeeRequestDTO.firstName(),
-                employeeRequestDTO.lastName(),
-                employeeRequestDTO.email(),
-                employeeRequestDTO.phoneNumber(),
-                employeeRequestDTO.password(),
-                employeeRequestDTO.cpf(),
-                employeeRequestDTO.experienceList(),
-                employeeRequestDTO.city(),
-                employeeRequestDTO.state(),
-                employeeRequestDTO.postalCode(),
-                employeeRequestDTO.addressStreet(),
-                employeeRequestDTO.addressComplement(),
-                employeeRequestDTO.addressNumber(),
-                employeeRequestDTO.address(),
-                employeeRequestDTO.dateOfBirth());
-    }
-
-
 
 
 }

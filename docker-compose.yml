@@ -3,13 +3,55 @@ services:
   postgres:
     image: postgres:13
     environment:
-      POSTGRES_DB: mydatabase
-      POSTGRES_USER: myuser
-      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
-      - postgres-data:/var/lib/postgresql/datateste
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  app:
+    build: .
+    environment:
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO}
+      SPRING_JPA_PROPERTIES_HIBERNATE_JDBC_LOB_NON_CONTEXTUAL_CREATION: "true"
+      API_SECURITY_TOKEN_SECRET: ${API_SECURITY_TOKEN_SECRET}
+      JAVA_OPTS: "-Dcom.sun.management.jmxremote \
+                  -Dcom.sun.management.jmxremote.port=9010 \
+                  -Dcom.sun.management.jmxremote.rmi.port=9011 \
+                  -Dcom.sun.management.jmxremote.authenticate=false \
+                  -Dcom.sun.management.jmxremote.ssl=false \
+                  -Djava.rmi.server.hostname=localhost"
+    ports:
+      - "8443:8443"
+      - "587:587"
+
+    depends_on:
+      - postgres
+    networks:
+      - backend
+
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - backend
+
 
 volumes:
   postgres-data:
+
+networks:
+  backend:
+    driver: bridge
+

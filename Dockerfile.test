@@ -1,0 +1,14 @@
+# Dockerfile.test
+FROM maven:3.8.1-openjdk-17 AS build
+
+WORKDIR /app
+
+# Copie o pom.xml e baixe as dependências
+COPY pom.xml .
+RUN mvn dependency:go-offline
+
+# Copie o código e os testes
+COPY src ./src
+
+# Execute os testes
+CMD ["mvn", "test"]

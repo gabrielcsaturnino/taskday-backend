@@ -1,7 +1,9 @@
 package com.example.taskday.domain.employeeJobVacancy;
+import java.util.List;
+import java.util.UUID;
 
-import com.example.taskday.domain.employee.Employee;
-import com.example.taskday.domain.jobVacancy.JobVacancy;
+public record EmployeeJobVacancyResponseDTO(UUID uuid, String firstName, String lastName,
+                                            String phoneNumber, List<String> experienceList,
+                                            String city, String state, Double point) {
 
-public record EmployeeJobVacancyResponseDTO(Employee employee, JobVacancy jobVacancy) {
 }

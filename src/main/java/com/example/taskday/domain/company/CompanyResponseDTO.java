@@ -1,8 +1,27 @@
 package com.example.taskday.domain.company;
 
-import com.example.taskday.domain.jobVacancy.JobVacancy;
+import java.util.Optional;
+import java.util.UUID;
 
-import java.util.List;
+public record CompanyResponseDTO(Optional<UUID> uuid, Optional<String> name, Optional<String> cnpj, Optional<String> addressStreet,
+                                 Optional<String> addressComplement, Optional<String> addressNumber, Optional<String> address,
+                                 Optional<String> city, Optional<String> state, Optional<String> postalCode, Optional<String> email, Optional<String> phoneNumber, Optional<String> ownerName) {
 
-public record CompanyResponseDTO(String name, String cnpj, String addressStreet, String addressComplement, String addressNumber, String address, String city, String state, String postalCode, String password, String email, String phoneNumber, String ownerName, List<JobVacancy> jobList) {
+
+   public static CompanyResponseDTO partialCompany(UUID uuid, String name, String address, String city, String state){
+       return new CompanyResponseDTO (Optional.of(uuid), Optional.of(name), Optional.empty(),
+               Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(address),
+               Optional.of(city), Optional.of(state), Optional.empty(),Optional.empty(),Optional.empty(), Optional.empty());
+   }
+
+
+    public static CompanyResponseDTO completeCompany(UUID uuid, String name, String addressStreet,String addressComplemet,
+                                                     String addressNumber,String address,
+                                                     String city, String state, String postalCode, String email, String phoneNumber, String ownerName){
+        return new CompanyResponseDTO (Optional.of(uuid), Optional.of(name), Optional.empty(),
+                Optional.of(addressStreet), Optional.of(addressComplemet), Optional.of(addressNumber), Optional.of(address),
+                Optional.of(city), Optional.of(state), Optional.of(postalCode),Optional.of(email),Optional.of(phoneNumber), Optional.of(ownerName));
+    }
+
+
 }
