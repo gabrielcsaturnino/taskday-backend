@@ -4,6 +4,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.test
+    command: mvn test
     environment:
       SPRING_DATASOURCE_URL: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
       SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.h2.Driver
