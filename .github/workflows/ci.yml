@@ -34,7 +34,7 @@ jobs:
 
       - name: Run tests
         run: |
-          docker-compose -f docker-compose.test.yml exec test mvn test
+         docker-compose -f docker-compose.test.yml exec -T test mvn test
 
       - name: Shutdown Docker containers
         run: |
