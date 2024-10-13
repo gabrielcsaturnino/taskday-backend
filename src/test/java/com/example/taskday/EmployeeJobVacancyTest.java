@@ -133,10 +133,10 @@ public class EmployeeJobVacancyTest {
 
     @AfterAll
     public void after(){
-        companyRepository.deleteAll();
-        jobVacancyRepository.deleteAll();
-        employeeRepository.deleteAll();
         employeeJobVacancyRepository.deleteAll();
+        jobVacancyRepository.deleteAll();
+        companyRepository.deleteAll();
+        employeeRepository.deleteAll();
     }
 
     @BeforeAll
