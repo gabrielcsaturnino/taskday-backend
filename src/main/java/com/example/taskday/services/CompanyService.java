@@ -44,8 +44,7 @@ public class CompanyService {
 
         Company company = CompanyMapper.registerDTOToCompany(companyCreateRequestDTO);
         company.setPassword(encryptedPassword);
-        company.setCreatedBy(LocalDate.now());
-        company.setUpdatedBy(LocalDate.now());
+
 
         company.setConfirmationCode(generateConfirmationCode());
         emailService.sendEmail(company.getEmail(), company.getConfirmationCode());
@@ -58,6 +57,10 @@ public class CompanyService {
     }
 
     public void confirmationAccount(Company company, String code) throws OperationException {
+        if(company.getRoleType() == RoleType.COMPANY){
+            throw new OperationException("Usuário ja foi autenticado!");
+        }
+
         if(company.getConfirmationCode().equals(code)){
             company.setRoleType(RoleType.COMPANY);
             company.setConfirmationCode(null);

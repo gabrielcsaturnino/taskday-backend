@@ -10,8 +10,7 @@ import com.example.taskday.services.EmployeeJobVacancyService;
 import com.example.taskday.services.EmployeeService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -19,6 +18,7 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -26,10 +26,13 @@ import org.springframework.security.authentication.AuthenticationManager;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -42,11 +45,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Transactional
 @ExtendWith(MockitoExtension.class)
 @AutoConfigureMockMvc
 @TestPropertySource(locations = "classpath:application-test.properties")
 @SpringBootTest
 @ContextConfiguration
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class EmployeeControllerTest {
 
     @Autowired
@@ -79,71 +85,87 @@ public class EmployeeControllerTest {
     @Mock
     private SecurityFilter securityFilter;
 
+    private TestUtils testUtils = new TestUtils();
 
-    @Mock
+
+    @Autowired
     private ObjectMapper objectMapper;
 
+    private static Employee employee; // Variável de instância para armazenar a empresa
+    private static String loginTokenEmployee; // Variável estática para armazenar o token
+    private static boolean isEmployeeCreated;
 
-    @BeforeEach
-    public void setUp() {
-        MockitoAnnotations.openMocks(this);
-        objectMapper = new ObjectMapper();
+
+    @AfterAll
+    public void after(){
         employeeRepository.deleteAll();
-
     }
 
-    @Test
-    @WithMockUser // Simula um usuário autenticado
-    public void testRegisterEmployee() throws Exception {
+    @BeforeAll
+    public void setUpClass() throws Exception {
+          createAndLoginEmployee();
+    }
 
+    @BeforeEach
+    public void setUp() throws Exception {
+        MockitoAnnotations.openMocks(this);
+    }
 
-        EmployeeCreateRequestDTO employeeCreateRequestDTO = createEmployeeDTO();
+    private void createAndLoginEmployee() throws Exception {
+        EmployeeCreateRequestDTO employeeCreateRequestDTO = testUtils.createEmployee();
         String token = createEmployeeAndGetToken(employeeCreateRequestDTO);
-
-
-        Employee employee = (Employee) employeeRepository.findByEmail(employeeCreateRequestDTO.email());
-        assertThat(employee.getEmail()).isEqualTo("saturnino.g@estudantes.ifg.edu.br");
-        assertThat(employee.getRoleType()).isEqualTo(RoleType.INACTIVE);
-        assertThat(employee.isEnabled()).isFalse();
-
+        employee= (Employee) employeeRepository.findByEmail(employeeCreateRequestDTO.email());
         confirmEmployeeCode(token, employee.getConfirmationCode());
-        Employee reloadedEmployee = (Employee) employeeRepository.findByEmail(employee.getEmail());
-        assertThat(reloadedEmployee.getRoleType()).isEqualTo(RoleType.EMPLOYEE);
+
+        // Realiza login para obter o token de autenticação
+        EmployeeAuthenticationRequestDTO loginRequest = new EmployeeAuthenticationRequestDTO(
+                employee.getEmail(),
+                employeeCreateRequestDTO.password()
+        );
+        loginTokenEmployee = loginEmployee(loginRequest);
+    }
 
 
+
+
+    @Test
+    public void testRegisterEmployee() throws Exception {
         List<Employee> employees = employeeRepository.findAll();
         assertThat(employees).hasSize(1);
         assertThat(employees.get(0).isEnabled()).isTrue();
     }
 
     @Test
-    @WithMockUser
     public void testLoginEmployee() throws Exception {
-        EmployeeCreateRequestDTO employeeCreateRequestDTO = createEmployeeDTO();
-        String token = createEmployeeAndGetToken(employeeCreateRequestDTO);
-
-        Employee employee = (Employee)employeeRepository.findByEmail(employeeCreateRequestDTO.email());
-        confirmEmployeeCode(token, employee.getConfirmationCode());
-
-        EmployeeAuthenticationRequestDTO loginRequest = new EmployeeAuthenticationRequestDTO(
-                employeeCreateRequestDTO.email(),
-                employeeCreateRequestDTO.password()
-        );
-
-        loginEmployee(loginRequest);
-
-        // Verificar se o employee está com o RoleType correto
-        Employee reloadedEmployee = (Employee) employeeRepository.findByEmail(employeeCreateRequestDTO.email());
+        Employee reloadedEmployee = (Employee) employeeRepository.findByEmail(employee.getEmail());
         assertThat(reloadedEmployee.getRoleType()).isEqualTo(RoleType.EMPLOYEE);
-
     }
 
 
     @Test
     public void testLoginEmployeeWithoutConfirmation() throws Exception {
-        EmployeeCreateRequestDTO employeeCreateRequestDTO = createEmployeeDTO();
-        String token = createEmployeeAndGetToken(employeeCreateRequestDTO);
+        objectMapper.findAndRegisterModules();
+        List<String> experiences = Arrays.asList("Java Developer", "Spring Boot", "REST APIs");
+        LocalDate localDate = LocalDate.parse("2001-02-20");
+        EmployeeCreateRequestDTO employeeCreateRequestDTO = new EmployeeCreateRequestDTO(
+                "John",
+                "Doe",
+                "sssaturnino.g@estudantes.ifg.edu.br",
+                "123456789101112",
+                "passw5dwdwddw",
+                "75566161006",
+                experiences,
+                "City",
+                "State",
+                "12345",
+                "Street",
+                "Complement",
+                "123",
+                "Address",
+                localDate
+        );
 
+        String token = createEmployeeAndGetToken(employeeCreateRequestDTO);
         EmployeeAuthenticationRequestDTO loginRequest = new EmployeeAuthenticationRequestDTO(
                 employeeCreateRequestDTO.email(),
                 employeeCreateRequestDTO.password()
@@ -158,23 +180,97 @@ public class EmployeeControllerTest {
         confirmEmployeeCode(token, employee.getConfirmationCode());
 
         String loginToken = loginEmployee(loginRequest);
-
-
         Employee reloadedEmployee = (Employee) employeeRepository.findByEmail(employeeCreateRequestDTO.email());
         assertThat(reloadedEmployee.getRoleType()).isEqualTo(RoleType.EMPLOYEE);
+        employeeRepository.delete(reloadedEmployee);
     }
 
     @Test
     public void testChangePassword() throws Exception {
-        changePassword("teste1234567");
+        objectMapper.findAndRegisterModules();
+        List<String> experiences = Arrays.asList("Java Developer", "Spring Boot", "REST APIs");
+        LocalDate localDate = LocalDate.parse("2001-02-20");
+        EmployeeCreateRequestDTO employeeCreateRequestDTO = new EmployeeCreateRequestDTO(
+                "John",
+                "Doe",
+                "ssaturnino.g@estudantes.ifg.edu.br",
+                "123456789101112",
+                "passw5dwdwddw",
+                "26667765064",
+                experiences,
+                "City",
+                "State",
+                "12345",
+                "Street",
+                "Complement",
+                "123",
+                "Address",
+                localDate
+        );
+
+        String token = createEmployeeAndGetToken(employeeCreateRequestDTO);
+        EmployeeAuthenticationRequestDTO loginRequest = new EmployeeAuthenticationRequestDTO(
+                employeeCreateRequestDTO.email(),
+                employeeCreateRequestDTO.password()
+        );
+
+        Employee employee = (Employee) employeeRepository.findByEmail("ssaturnino.g@estudantes.ifg.edu.br");
+        confirmEmployeeCode(token, employee.getConfirmationCode());
+        String newPassword = "123456789101112";
+
+        String loginToken = loginEmployee(loginRequest);
+
+        mockMvc.perform(post("http://localhost:8080/employees/request-password-change")
+                        .header("Authorization", "Bearer " + loginToken))
+                .andExpect(status().isOk());
+
+        Employee employeeReload = (Employee) employeeRepository.findByEmail(employeeCreateRequestDTO.email());
+
+
+        PasswordChangeRequestDTO passwordChangeRequestDTO = new PasswordChangeRequestDTO(
+                newPassword, employeeReload.getConfirmationCode()
+        );
+        mockMvc.perform(put("http://localhost:8080/employees/password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + loginToken)
+                        .content(objectMapper.writeValueAsString(passwordChangeRequestDTO)))
+                .andExpect(status().isOk());
+
+
+        //BAD REQUEST - CÓDIGO INVÁLIDO
+        PasswordChangeRequestDTO invalidPasswordChangeDTO = new PasswordChangeRequestDTO(
+                newPassword, "111111111"
+        );
+        mockMvc.perform(post("http://localhost:8080/employees/request-password-change")
+                        .header("Authorization", "Bearer " + loginToken))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(put("http://localhost:8080/employees/password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + loginToken)
+                        .content(objectMapper.writeValueAsString(invalidPasswordChangeDTO)))
+                .andExpect(status().isBadRequest());
+
+        //BAD REQUEST - SENHA INVÁLIDA (UTILIZANDO SENHA ANTIGA)
+        mockMvc.perform(post("http://localhost:8080/auth/login/employee")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginRequest)))
+                .andExpect(status().isBadRequest());
+
+
+        EmployeeAuthenticationRequestDTO loginRequest1 = new EmployeeAuthenticationRequestDTO(
+                employeeCreateRequestDTO.email(),
+                newPassword
+        );
+
+        loginEmployee(loginRequest1);
+        employeeRepository.delete(employeeReload);
     }
 
 
     @Test
     public void changeAccount() throws Exception{
         String name = "Joao";
-
-
         EmployeeChangeAccountRequestDTO employeeChangeAccountRequestDTO = new EmployeeChangeAccountRequestDTO(
                 Optional.of(name),           // firstName
                 Optional.empty(),            // lastName
@@ -193,32 +289,6 @@ public class EmployeeControllerTest {
         changeData(employeeChangeAccountRequestDTO);
     }
 
-
-
-
-
-    private EmployeeCreateRequestDTO createEmployeeDTO(){
-        objectMapper.findAndRegisterModules();
-        List<String> experiences = Arrays.asList("Java Developer", "Spring Boot", "REST APIs");
-        LocalDate localDate = LocalDate.parse("2001-02-20");
-        return new EmployeeCreateRequestDTO(
-                "John",
-                "Doe",
-                "saturnino.g@estudantes.ifg.edu.br",
-                "123456789101112",
-                "passw5dwdwddw",
-                "08063359127",
-                experiences,
-                "City",
-                "State",
-                "12345",
-                "Street",
-                "Complement",
-                "123",
-                "Address",
-                localDate
-        );
-    }
 
 
     public String createEmployeeAndGetToken(EmployeeCreateRequestDTO employeeCreateRequestDTO) throws Exception {
@@ -251,90 +321,17 @@ public class EmployeeControllerTest {
         return response.token();
     }
 
-    public void changePassword(String password) throws Exception {
-        EmployeeCreateRequestDTO employeeCreateRequestDTO = createEmployeeDTO();
-        String token = createEmployeeAndGetToken(employeeCreateRequestDTO);
-        Employee employee = (Employee) employeeRepository.findByEmail(employeeCreateRequestDTO.email());
-        confirmEmployeeCode(token, employee.getConfirmationCode());
-
-        EmployeeAuthenticationRequestDTO loginRequest = new EmployeeAuthenticationRequestDTO(
-                employeeCreateRequestDTO.email(),
-                employeeCreateRequestDTO.password()
-        );
-
-        String loginToken = loginEmployee(loginRequest);
-
-        mockMvc.perform(post("http://localhost:8080/employees/request-password-change")
-                        .header("Authorization", "Bearer " + loginToken))
-                .andExpect(status().isOk());
-
-        Employee employeeReload = (Employee) employeeRepository.findByEmail(employeeCreateRequestDTO.email());
-
-
-        PasswordChangeRequestDTO passwordChangeRequestDTO = new PasswordChangeRequestDTO(
-                password, employeeReload.getConfirmationCode()
-        );
-        mockMvc.perform(put("http://localhost:8080/employees/password")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer " + loginToken)
-                        .content(objectMapper.writeValueAsString(passwordChangeRequestDTO)))
-                .andExpect(status().isOk());
-
-
-        //BAD REQUEST - CÓDIGO INVÁLIDO
-        PasswordChangeRequestDTO invalidPasswordChangeDTO = new PasswordChangeRequestDTO(
-                password, "111111111"
-        );
-        mockMvc.perform(post("http://localhost:8080/employees/request-password-change")
-                        .header("Authorization", "Bearer " + loginToken))
-                .andExpect(status().isOk());
-
-        mockMvc.perform(put("http://localhost:8080/employees/password")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer " + loginToken)
-                        .content(objectMapper.writeValueAsString(invalidPasswordChangeDTO)))
-                .andExpect(status().isBadRequest());
-
-        //BAD REQUEST - SENHA INVÁLIDA (UTILIZANDO SENHA ANTIGA)
-        mockMvc.perform(post("http://localhost:8080/auth/login/employee")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(loginRequest)))
-                .andExpect(status().isBadRequest());
-
-
-        EmployeeAuthenticationRequestDTO loginRequest1 = new EmployeeAuthenticationRequestDTO(
-                employeeCreateRequestDTO.email(),
-                password
-        );
-
-        loginEmployee(loginRequest1);
-
-    }
-
     public void changeData(EmployeeChangeAccountRequestDTO employeeChangeAccountRequestDTO) throws Exception {
-        EmployeeCreateRequestDTO employeeCreateRequestDTO = createEmployeeDTO();
-        String token = createEmployeeAndGetToken(employeeCreateRequestDTO);
-        Employee employee = (Employee) employeeRepository.findByEmail(employeeCreateRequestDTO.email());
-        confirmEmployeeCode(token, employee.getConfirmationCode());
-
-        EmployeeAuthenticationRequestDTO loginRequest = new EmployeeAuthenticationRequestDTO(
-                employeeCreateRequestDTO.email(),
-                employeeCreateRequestDTO.password()
-        );
-
-        String loginToken = loginEmployee(loginRequest);
-
+        objectMapper.findAndRegisterModules();
         mockMvc.perform(put("http://localhost:8080/employees/account")
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Bearer " + loginToken)
+                .header("Authorization", "Bearer " + loginTokenEmployee)
                 .content(objectMapper.writeValueAsString(employeeChangeAccountRequestDTO))
         ).andExpect(status().isOk());
 
         MvcResult result = mockMvc.perform(get("http://localhost:8080/employees/me")
-                .header("Authorization", "Bearer " + loginToken)
+                .header("Authorization", "Bearer " + loginTokenEmployee)
         ).andExpect(status().isOk()).andReturn();
-
-
         String resultContent = result.getResponse().getContentAsString();
         EmployeeResponseDTO employeeResponseDTO = objectMapper.readValue(resultContent, EmployeeResponseDTO.class);
         assertEquals("Joao", employeeResponseDTO.firstName().get());

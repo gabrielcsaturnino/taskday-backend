@@ -30,6 +30,8 @@ public class SecutiryConfigurations {
                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                .authorizeHttpRequests(authorize -> authorize
                        .requestMatchers(HttpMethod.POST, "/auth/login/employee").permitAll()
+                       .requestMatchers(HttpMethod.POST, "/auth/refresh-token/employee").permitAll()
+                       .requestMatchers(HttpMethod.POST, "/auth/refresh-token/company").permitAll()
                        .requestMatchers(HttpMethod.POST, "/job-vacancies").hasRole("COMPANY")
                        .requestMatchers(HttpMethod.POST, "/auth/register/employee").permitAll()
                        .requestMatchers(HttpMethod.POST, "/auth/register/company").permitAll()
@@ -54,6 +56,9 @@ public class SecutiryConfigurations {
                        .requestMatchers(HttpMethod.GET, "/auth/isCompany").permitAll()
                        .requestMatchers(HttpMethod.PUT, "/job-vacancies/{jobVacancyId}").hasRole("COMPANY")
                        .requestMatchers(HttpMethod.GET, "/actuator/prometheus").permitAll()
+
+                       .requestMatchers(HttpMethod.GET, "/home").permitAll()
+
 
 
 

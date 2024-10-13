@@ -2,6 +2,7 @@ package com.example.taskday.services;
 
 import com.example.taskday.domain.employee.Employee;
 
+import com.example.taskday.domain.employee.EmployeeResponseDTO;
 import com.example.taskday.domain.employeeJobVacancy.EmployeeJobVacancy;
 import com.example.taskday.domain.employeeJobVacancy.EmployeeJobVacancyResponseDTO;
 import com.example.taskday.domain.exceptions.OperationException;
@@ -9,7 +10,6 @@ import com.example.taskday.domain.jobVacancy.JobVacancy;
 import com.example.taskday.domain.jobVacancy.JobVacancyResponseDTO;
 import com.example.taskday.enums.Status;
 import com.example.taskday.mappers.EmployeeJobVacancyMapper;
-import com.example.taskday.mappers.EmployeeMapper;
 import com.example.taskday.repositories.EmployeeJobVacancyRepository;
 import com.example.taskday.repositories.EmployeeRepository;
 import com.example.taskday.repositories.JobVacancyRepository;
@@ -91,6 +91,14 @@ public class EmployeeJobVacancyService {
     public List<EmployeeJobVacancyResponseDTO> getAllEmployeeRegisteredByJobVacancy(UUID jobVacancyId) {
         return employeeJobVacancyRepository.findByJobVacancy_Id(jobVacancyId)
                 .stream()
+                .map(employeeJobVacancy -> EmployeeJobVacancyMapper.listEmployee(employeeJobVacancy.getEmployee(), employeeJobVacancy))
+                .collect(Collectors.toList());
+    }
+
+    public List<EmployeeJobVacancyResponseDTO> getEmployeesByJobVacancyAndPoints(UUID jobVacancyId, double minPoints) {
+        return employeeJobVacancyRepository.findByJobVacancy_Id(jobVacancyId)
+                .stream()
+                .filter(employeeJobVacancy -> employeeJobVacancy.getPoint() > minPoints)
                 .map(employeeJobVacancy -> EmployeeJobVacancyMapper.listEmployee(employeeJobVacancy.getEmployee(), employeeJobVacancy))
                 .collect(Collectors.toList());
     }

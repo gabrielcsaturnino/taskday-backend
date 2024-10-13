@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Homepage</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Bem-vindo à nossa plataforma!</h1>
+
+    <div class="mt-4">
+        <h2>Login</h2>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Senha:</label>
+                <input type="password" id="password" name="password" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Entrar</button>
+        </form>
+    </div>
+
+    <div class="mt-4">
+        <h2>Cadastro</h2>
+        <button class="btn btn-info" onclick="showEmployeeForm()">Cadastrar Empregado</button>
+        <button class="btn btn-warning" onclick="showCompanyForm()">Cadastrar Empresa</button>
+
+        <form id="employeeForm" class="hidden" th:action="@{/auth/register/employee}" method="post">
+            <h3>Cadastro de Empregado</h3>
+            <div id="employeePersonalFields">
+                <div class="form-group">
+                    <label for="firstName">Nome:</label>
+                    <input type="text" id="firstName" name="firstName" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="lastName">Sobrenome:</label>
+                    <input type="text" id="lastName" name="lastName" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="emailEmp">Email:</label>
+                    <input type="email" id="emailEmp" name="email" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="phoneNumberEmp">Telefone:</label>
+                    <input type="text" id="phoneNumberEmp" name="phoneNumber" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="passwordEmp">Senha:</label>
+                    <input type="password" id="passwordEmp" name="password" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="cpf">CPF:</label>
+                    <input type="text" id="cpf" name="cpf" class="form-control" required>
+                </div>
+                <button type="button" class="btn btn-success" onclick="showAddressFields('employee')">Prosseguir para Endereço</button>
+            </div>
+            <div id="employeeAddressFields" class="hidden">
+                <h4>Dados de Endereço</h4>
+                <div class="form-group">
+                    <label for="addressStreetEmp">Rua:</label>
+                    <input type="text" id="addressStreetEmp" name="addressStreet" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="addressComplementEmp">Complemento:</label>
+                    <input type="text" id="addressComplementEmp" name="addressComplement" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="addressNumberEmp">Número:</label>
+                    <input type="text" id="addressNumberEmp" name="addressNumber" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="cityEmp">Cidade:</label>
+                    <input type="text" id="cityEmp" name="city" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="stateEmp">Estado:</label>
+                    <input type="text" id="stateEmp" name="state" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="postalCodeEmp">Código Postal:</label>
+                    <input type="text" id="postalCodeEmp" name="postalCode" class="form-control" required>
+                </div>
+                <button type="button" class="btn btn-warning" onclick="showPersonalFields('employee')">Voltar</button>
+                <button type="submit" class="btn btn-primary">Cadastrar Empregado</button>
+            </div>
+        </form>
+
+        <form id="companyForm" class="hidden" th:action="@{/auth/register/company}" method="post">
+            <h3>Cadastro de Empresa</h3>
+            <div id="companyPersonalFields">
+                <div class="form-group">
+                    <label for="companyName">Nome da Empresa:</label>
+                    <input type="text" id="companyName" name="name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="cnpj">CNPJ:</label>
+                    <input type="text" id="cnpj" name="cnpj" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="emailCompany">Email:</label>
+                    <input type="email" id="emailCompany" name="email" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="phoneNumberCompany">Telefone:</label>
+                    <input type="text" id="phoneNumberCompany" name="phoneNumber" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="ownerName">Nome do Proprietário:</label>
+                    <input type="text" id="ownerName" name="ownerName" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="ownerCpf">CPF do Proprietário:</label>
+                    <input type="text" id="ownerCpf" name="ownerCpf" class="form-control" required>
+                </div>
+                <button type="button" class="btn btn-success" onclick="showAddressFields('company')">Prosseguir para Endereço</button>
+            </div>
+            <div id="companyAddressFields" class="hidden">
+                <h4>Dados de Endereço</h4>
+                <div class="form-group">
+                    <label for="companyAddressStreet">Rua:</label>
+                    <input type="text" id="companyAddressStreet" name="addressStreet" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="companyAddressComplement">Complemento:</label>
+                    <input type="text" id="companyAddressComplement" name="addressComplement" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="companyAddressNumber">Número:</label>
+                    <input type="text" id="companyAddressNumber" name="addressNumber" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="companyCity">Cidade:</label>
+                    <input type="text" id="companyCity" name="city" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="companyState">Estado:</label>
+                    <input type="text" id="companyState" name="state" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="companyPostalCode">Código Postal:</label>
+                    <input type="text" id="companyPostalCode" name="postalCode" class="form-control" required>
+                </div>
+                <button type="button" class="btn btn-warning" onclick="showPersonalFields('company')">Voltar</button>
+                <button type="submit" class="btn btn-primary">Cadastrar Empresa</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function showEmployeeForm() {
+        document.getElementById('employeeForm').classList.remove('hidden');
+        document.getElementById('companyForm').classList.add('hidden');
+        // Limpar os campos da empresa
+        clearCompanyFields();
+    }
+
+    function showCompanyForm() {
+        document.getElementById('companyForm').classList.remove('hidden');
+        document.getElementById('employeeForm').classList.add('hidden');
+        // Limpar os campos do empregado
+        clearEmployeeFields();
+    }
+
+    function clearEmployeeFields() {
+        document.getElementById('firstName').value = '';
+        document.getElementById('lastName').value = '';
+        document.getElementById('emailEmp').value = '';
+        document.getElementById('phoneNumberEmp').value = '';
+        document.getElementById('passwordEmp').value = '';
+        document.getElementById('cpf').value = '';
+        document.getElementById('employeeAddressFields').classList.add('hidden');
+    }
+
+    function clearCompanyFields() {
+        document.getElementById('companyName').value = '';
+        document.getElementById('cnpj').value = '';
+        document.getElementById('emailCompany').value = '';
+        document.getElementById('phoneNumberCompany').value = '';
+        document.getElementById('ownerName').value = '';
+        document.getElementById('ownerCpf').value = '';
+        document.getElementById('companyAddressFields').classList.add('hidden');
+    }
+
+    function showAddressFields(type) {
+        if (type === 'employee') {
+            document.getElementById('employeePersonalFields').classList.add('hidden');
+            document.getElementById('employeeAddressFields').classList.remove('hidden');
+        } else if (type === 'company') {
+            document.getElementById('companyPersonalFields').classList.add('hidden');
+            document.getElementById('companyAddressFields').classList.remove('hidden');
+        }
+    }
+
+    function showPersonalFields(type) {
+        if (type === 'employee') {
+            document.getElementById('employeeAddressFields').classList.add('hidden');
+            document.getElementById('employeePersonalFields').classList.remove('hidden');
+        } else if (type === 'company') {
+            document.getElementById('companyAddressFields').classList.add('hidden');
+            document.getElementById('companyPersonalFields').classList.remove('hidden');
+        }
+    }
+</script>
+
+</body>
+</html>

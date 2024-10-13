@@ -23,6 +23,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.stream.Collectors;
 
 
@@ -53,9 +54,10 @@ public class AuthenticationController {
         var usernamePassword = new UsernamePasswordAuthenticationToken(employeeAuthenticationRequestDTO.email(), employeeAuthenticationRequestDTO.password());
         var auth = this.authenticationManager.authenticate(usernamePassword);
         var token = tokensService.generateEmployeeToken((Employee) auth.getPrincipal());
+        var refreshToken = tokensService.generateEmployeeTokenRefresh((Employee) auth.getPrincipal());
 
 
-        return ResponseEntity.ok(new EmployeeLoginResponseDTO(token, auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList())));
+        return ResponseEntity.ok(new EmployeeLoginResponseDTO(token, refreshToken, auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList())));
     }
 
     @PostMapping("/login/company")
@@ -63,7 +65,8 @@ public class AuthenticationController {
         var usernamePassword = new UsernamePasswordAuthenticationToken(companyAuthenticationRequestDTO.email(), companyAuthenticationRequestDTO.password());
         var auth = this.authenticationManager.authenticate(usernamePassword);
         var token = tokensService.generateCompanyToken((Company) auth.getPrincipal());
-        return ResponseEntity.ok(new CompanyLoginResponseDTO(token, auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList())));
+        var refreshToken = tokensService.generateCompanyTokenRefresh((Company) auth.getPrincipal());
+        return ResponseEntity.ok(new CompanyLoginResponseDTO(token, refreshToken, auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList())));
     }
 
     @PostMapping("/register/employee")
@@ -107,13 +110,13 @@ public class AuthenticationController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Object principal = authentication.getPrincipal();
 
-        if(principal instanceof Employee){
+        if (principal instanceof Employee) {
             Employee employee = (Employee) authentication.getPrincipal();
             employeeService.confirmationAccount(employee, code);
             return ResponseEntity.ok().build();
         }
 
-        if(principal instanceof Company){
+        if (principal instanceof Company) {
             Company company = (Company) authentication.getPrincipal();
             companyService.confirmationAccount(company, code);
             return ResponseEntity.ok().build();
@@ -125,20 +128,31 @@ public class AuthenticationController {
 
     @PostMapping("/resendcode")
     public ResponseEntity resendCode(@RequestParam String email) throws OperationException {
-          employeeService.resendConfirmationCode(email);
-          return ResponseEntity.ok().build();
+        employeeService.resendConfirmationCode(email);
+        return ResponseEntity.ok().build();
     }
 
 
-
-    @GetMapping("/role/company")
-    public ResponseEntity<Boolean> isCompany(Authentication authentication) {
-        return ResponseEntity.ok(authentication.getAuthorities().stream().anyMatch(auth -> auth.getAuthority().equals("ROLE_COMPANY")));
+    @PostMapping("/refresh-token/employee")
+    public ResponseEntity<String> refreshTokenEmployee(@RequestBody Map<String, String> request) {
+        String token = request.get("refreshToken");
+        try {
+            String newAccessToken = tokensService.validateRefreshTokenEmployee(token);
+            return ResponseEntity.ok(newAccessToken);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(401).body("Refresh token inválido ou expirado.");
+        }
     }
 
-    @GetMapping("/role/employee")
-    public ResponseEntity<Boolean> isEmployee(Authentication authentication) {
-        return ResponseEntity.ok(authentication.getAuthorities().stream().anyMatch(auth -> auth.getAuthority().equals("ROLE_EMPLOYEE")));
+    @PostMapping("/refresh-token/company")
+    public ResponseEntity<String> refreshTokenCompany(@RequestBody Map<String, String> request) {
+        String token = request.get("refreshToken");
+        try {
+            String newAccessToken = tokensService.validateRefreshTokenCompany(token);
+            return ResponseEntity.ok(newAccessToken);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(401).body("Refresh token inválido ou expirado.");
+        }
     }
+
 }
-

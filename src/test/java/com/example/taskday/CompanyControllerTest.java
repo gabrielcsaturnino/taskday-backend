@@ -2,7 +2,7 @@ package com.example.taskday;
 
 
 import com.example.taskday.domain.company.*;
-import com.example.taskday.domain.employee.EmployeeCreateRequestDTO;
+import com.example.taskday.domain.jobVacancy.JobVacancy;
 import com.example.taskday.domain.jobVacancy.JobVacancyCreateRequestDTO;
 import com.example.taskday.enums.RoleType;
 import com.example.taskday.enums.Status;
@@ -13,30 +13,27 @@ import com.example.taskday.repositories.EmployeeRepository;
 import com.example.taskday.repositories.JobVacancyRepository;
 import com.example.taskday.services.CompanyService;
 import com.example.taskday.services.EmailService;
-import com.example.taskday.services.EmployeeJobVacancyService;
-import com.example.taskday.services.EmployeeService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.checkerframework.checker.units.qual.C;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -46,24 +43,30 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.mock.http.server.reactive.MockServerHttpRequest.put;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Transactional
 @ExtendWith(MockitoExtension.class)
 @AutoConfigureMockMvc
 @TestPropertySource(locations = "classpath:application-test.properties")
 @SpringBootTest
 @ContextConfiguration
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class CompanyControllerTest {
+
 
     @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
+
     @Mock
     private EmailService emailService; // Mock do EmailService
-
 
     @Value("${api.security.token.secret}")
     private String tokenSecret;
@@ -86,41 +89,56 @@ public class CompanyControllerTest {
     @Mock
     private AuthenticationManager authenticationManager; // Moca o gerenciador de autenticação
 
+    public static JobVacancy createdJobVacancy;
+
     @Mock
     private SecurityFilter securityFilter;
 
+    private TestUtils testUtils = new TestUtils();
 
-    @Mock
-    private ObjectMapper objectMapper;
+    private  Company company; // Variável de instância para armazenar a empresa
+    private  String loginTokenCompany; // Variável estática para armazenar o token
+    private boolean isCompanyCreated;
 
-    private static Company company; // Variável de instância para armazenar a empresa
-    private static String loginToken;
-    private static boolean isCompanyCreated;
     @Autowired
     private EmployeeRepository employeeRepository;
 
+    JobVacancyCreateRequestDTO jobVacancyCreateRequestDTO;
+
+    @AfterAll
+    public void after(){
+        companyRepository.deleteAll();
+        jobVacancyRepository.deleteAll();
+    }
+
+    @BeforeAll
+    public void setUpClass() throws Exception {
+        createAndLoginCompany();
+        jobVacancyCreateRequestDTO = testUtils.createJobVacancy();
+    }
     @BeforeEach
     public void setUp() throws Exception {
         MockitoAnnotations.openMocks(this);
-        objectMapper = new ObjectMapper();
-        employeeRepository.deleteAll();
-        if (!isCompanyCreated) {
-            // Cria uma empresa e obtém o token para uso em testes
-            CompanyCreateRequestDTO companyCreateRequestDTO = createCompanyDTO();
-            String token = createCompanyAndGetToken(companyCreateRequestDTO);
-            company = (Company) companyRepository.findByEmail(companyCreateRequestDTO.email());
-            confirmCompanyCode(token, company.getConfirmationCode());
 
-            isCompanyCreated = true; // Marca que a empresa foi criada
-        }
+    }
+
+
+
+    private void createAndLoginCompany() throws Exception {
+        objectMapper.findAndRegisterModules();
+        CompanyCreateRequestDTO companyCreateRequestDTO = testUtils.createCompany();
+        String token = createCompanyAndGetToken(companyCreateRequestDTO);
+        company = (Company) companyRepository.findByEmail(companyCreateRequestDTO.email());
+        confirmCompanyCode(token, company.getConfirmationCode());
 
         // Realiza login para obter o token de autenticação
         CompanyAuthenticationRequestDTO loginRequest = new CompanyAuthenticationRequestDTO(
                 company.getEmail(),
-                "123456789101112"
+                companyCreateRequestDTO.password()
         );
-        loginToken = loginCompany(loginRequest);
+        loginTokenCompany = loginCompany(loginRequest);
     }
+
 
     @Test
     public void testRegisterCompany() throws Exception {
@@ -164,47 +182,20 @@ public class CompanyControllerTest {
     @Test
     public void testAddJobVacancy() throws Exception {
         objectMapper.findAndRegisterModules();
-        JobVacancyCreateRequestDTO jobVacancyCreateRequestDTO = new JobVacancyCreateRequestDTO(
-                40, // totalHoursJob
-                "Software Engineer", // title
-                "Responsible for developing software applications.", // description
-                Arrays.asList("Java", "Spring", "Microservices"), // desiredExperience
-                500.0, // dayValue
-                LocalDate.now().plusDays(5), // jobDate
-                "São Paulo", // city
-                "SP", // state
-                Status.ACTIVE // status
-        );
-
         mockMvc.perform(post("/job-vacancies")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer " + loginToken)
+                        .header("Authorization", "Bearer " + loginTokenCompany)
                         .content(objectMapper.writeValueAsString(jobVacancyCreateRequestDTO)))
                 .andExpect(status().isCreated());
 
         assertThat(jobVacancyRepository.findAll()).hasSize(1);
-    }
-    private CompanyCreateRequestDTO createCompanyDTO() {
-        objectMapper.findAndRegisterModules();
-        return new CompanyCreateRequestDTO(
-                "NOME1",
-                "06.947.284/0001-04",
-                "wd",
-                "wd",
-                "wd",
-                "wd",
-                "dw",
-                "wdwd",
-                "22222",
-                "123456789101112",
-                "company@example.com",
-                "dw",
-                "dw",
-                "08063359127"
-        );
+        createdJobVacancy = jobVacancyRepository.findAll().get(0);
     }
 
-    public String createCompanyAndGetToken(CompanyCreateRequestDTO companyCreateRequestDTO) throws Exception {
+
+
+    public  String createCompanyAndGetToken(CompanyCreateRequestDTO companyCreateRequestDTO) throws Exception {
+        objectMapper.findAndRegisterModules();
         MvcResult result = mockMvc.perform(post("http://localhost:8080/auth/register/company")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(companyCreateRequestDTO)))
@@ -213,14 +204,14 @@ public class CompanyControllerTest {
         return result.getResponse().getContentAsString();
     }
 
-    public void confirmCompanyCode(String token, String code) throws Exception {
+    public  void confirmCompanyCode(String token, String code) throws Exception {
         mockMvc.perform(post("http://localhost:8080/auth/confirmcode")
                         .param("code", code)
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk());
     }
 
-    public String loginCompany(CompanyAuthenticationRequestDTO companyAuthenticationRequestDTO) throws Exception {
+    public  String loginCompany(CompanyAuthenticationRequestDTO companyAuthenticationRequestDTO) throws Exception {
         MvcResult result = mockMvc.perform(post("http://localhost:8080/auth/login/company")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(companyAuthenticationRequestDTO)))
@@ -233,15 +224,15 @@ public class CompanyControllerTest {
     }
 
     public void changeData(CompanyChangeAccountRequestDTO companyChangeAccountRequestDTO) throws Exception {
-
+        objectMapper.findAndRegisterModules();
         mockMvc.perform(MockMvcRequestBuilders.put("http://localhost:8080/companies/account")
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Bearer " + loginToken)
+                .header("Authorization", "Bearer " + loginTokenCompany)
                 .content(objectMapper.writeValueAsString(companyChangeAccountRequestDTO))
         ).andExpect(status().isOk());
 
         MvcResult result = mockMvc.perform(get("http://localhost:8080/companies/me")
-                        .header("Authorization", "Bearer " + loginToken))
+                        .header("Authorization", "Bearer " + loginTokenCompany))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -249,5 +240,4 @@ public class CompanyControllerTest {
         CompanyResponseDTO companyResponseDTO = objectMapper.readValue(resultContent, CompanyResponseDTO.class);
         assertEquals("New Company Name", companyResponseDTO.name().get());
     }
-
 }
