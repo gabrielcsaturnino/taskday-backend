@@ -167,7 +167,7 @@ public class EmployeeJobVacancyTest {
         assertFalse(listJobVacancy.isEmpty());
 
         JobVacancySubscribeRequestDTO jobVacancySubscribeRequestDTO = new JobVacancySubscribeRequestDTO(
-                listJobVacancy.get(1).uuid().get(),
+                listJobVacancy.get(0).uuid().get(),
                 employee.getId()
         );
 
