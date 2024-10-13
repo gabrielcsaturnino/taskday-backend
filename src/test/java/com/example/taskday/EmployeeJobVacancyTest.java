@@ -131,6 +131,14 @@ public class EmployeeJobVacancyTest {
 
     private TestUtils testUtils = new TestUtils();
 
+    @AfterAll
+    public void after(){
+        companyRepository.deleteAll();
+        jobVacancyRepository.deleteAll();
+        employeeRepository.deleteAll();
+        employeeJobVacancyRepository.deleteAll();
+    }
+
     @BeforeAll
     public void setUp() throws OperationException {
         objectMapper.findAndRegisterModules();

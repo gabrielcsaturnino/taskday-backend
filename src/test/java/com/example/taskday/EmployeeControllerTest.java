@@ -132,7 +132,7 @@ public class EmployeeControllerTest {
     public void testRegisterEmployee() throws Exception {
         List<Employee> employees = employeeRepository.findAll();
         assertThat(employees).hasSize(1);
-        assertThat(employees.get(10).isEnabled()).isFalse();
+        assertThat(employees.get(0).isEnabled()).isTrue();
     }
 
     @Test
