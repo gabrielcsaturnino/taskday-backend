@@ -344,7 +344,7 @@ public class EmployeeControllerTest {
     public void deleteEmployee() throws Exception{
         mockMvc.perform(delete("http://localhost:8080/employees")
                 .header("Authorization", "Bearer " + loginTokenEmployee)
-        ).andExpect(status().isAccepted());
+        ).andExpect(status().isOk());
     }
 
     public String loginEmployee(EmployeeAuthenticationRequestDTO employeeAuthenticationRequestDTO) throws Exception {
