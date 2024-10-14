@@ -4,10 +4,8 @@ import com.example.taskday.domain.company.Company;
 import com.example.taskday.domain.company.CompanyCreateRequestDTO;
 import com.example.taskday.domain.employee.*;
 import com.example.taskday.domain.exceptions.OperationException;
-import com.example.taskday.domain.jobVacancy.JobVacancy;
-import com.example.taskday.domain.jobVacancy.JobVacancyCreateRequestDTO;
-import com.example.taskday.domain.jobVacancy.JobVacancyResponseDTO;
-import com.example.taskday.domain.jobVacancy.JobVacancySubscribeRequestDTO;
+import com.example.taskday.domain.jobVacancy.*;
+import com.example.taskday.enums.Status;
 import com.example.taskday.infra.security.SecurityFilter;
 import com.example.taskday.infra.security.SecutiryConfigurations;
 import com.example.taskday.infra.security.TokensService;
@@ -41,15 +39,16 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
@@ -164,6 +163,10 @@ public class EmployeeJobVacancyTest {
         loginTokenCompany = tokensService.generateCompanyToken(company);
 
     }
+    @BeforeEach
+    public void before(){
+        employeeJobVacancyRepository.deleteAll();
+    }
 
 
     @Test
@@ -185,24 +188,43 @@ public class EmployeeJobVacancyTest {
     }
 
 
+    @Test
+    @Order(2)
+    public void testChangeStatus() throws Exception {
+        List<JobVacancyResponseDTO> listJobVacancy = listAllJobVacancy(company.getName());
+
+        changeJobVacancy(listJobVacancy.get(0).uuid().get());
+
+        JobVacancySubscribeRequestDTO jobVacancySubscribeRequestDTO = new JobVacancySubscribeRequestDTO(
+                listJobVacancy.get(0).uuid().get(),
+                employee.getId()
+        );
+
+        MvcResult result = mockMvc.perform(post("/employees/jobs/subscribe")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + loginTokenEmployee)
+                        .content(objectMapper.writeValueAsString(jobVacancySubscribeRequestDTO)))
+                .andExpect(status().isBadRequest())
+                .andReturn();
+
+        String errorMessage = result.getResponse().getContentAsString();
+
+        assertTrue(errorMessage.contains("Vaga inativa!"), "A mensagem de erro esperada não foi retornada.");
+    }
 
 
 
 
-//    public List<EmployeeResponseDTO> getAllEmployeePerJob(UUID uuid) throws Exception {
-//        // Fazendo a requisição GET, substituindo {jobVacancyId} pela variável 'uuid'
-//        MvcResult result = mockMvc.perform(get("http://localhost:8080/{jobVacancyId}/employees", uuid)
-//                        .header("Authorization", "Bearer " + loginTokenCompany)
-//                )
-//                .andExpect(status().isOk())
-//                .andReturn();
-//
-//        // Obtendo a resposta como String e convertendo para uma lista de EmployeeResponseDTO
-//        String response = result.getResponse().getContentAsString();
-//        List<EmployeeResponseDTO> employeeResponseDTOS = Arrays.asList(objectMapper.readValue(response, EmployeeResponseDTO[].class));
-//
-//        return employeeResponseDTOS;
-//    }
+    public List<EmployeeResponseDTO> getAllEmployeePerJob(UUID uuid) throws Exception {
+        MvcResult result = mockMvc.perform(get("http://localhost:8080/job-vacancies/{jobVacancyId}/employees", uuid)
+                      .header("Authorization", "Bearer " + loginTokenCompany)
+               )
+               .andExpect(status().isOk())
+               .andReturn();
+
+        String response = result.getResponse().getContentAsString();
+        return objectMapper.readValue(response, new TypeReference<List<EmployeeResponseDTO>>() {});
+    }
 
 
     public void subscribeJob(JobVacancySubscribeRequestDTO jobVacancySubscribeRequestDTO) throws Exception {
@@ -212,6 +234,18 @@ public class EmployeeJobVacancyTest {
                         .content(objectMapper.writeValueAsString(jobVacancySubscribeRequestDTO))
                         .header("Authorization", "Bearer " + loginTokenEmployee))
                 .andExpect(status().isOk());
+    }
+
+    public void changeJobVacancy(UUID uuid) throws Exception {
+        objectMapper.findAndRegisterModules();
+        mockMvc.perform(put("/job-vacancies/{jobVacancyId}", uuid)
+                        .contentType(MediaType.APPLICATION_JSON)  // Definindo o Content-Type como JSON
+                        .header("Authorization", "Bearer " + loginTokenCompany)
+                        .content("{\"status\": \"INACTIVE\"}")  // Corpo da requisição como JSON
+                )
+                .andExpect(status().isOk())
+                .andReturn();
+
     }
 
 

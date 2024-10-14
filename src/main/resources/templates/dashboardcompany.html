@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Company</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+<h1>Bem-vindo ao Dashboard de Companies!</h1>
+<p>Aqui você pode gerenciar suas vagas de emprego e perfil.</p>
+<button onclick="adicionarVaga()" id="add-vaga-button">Adicionar Nova Vaga</button>
+
+<script>
+    // Função para adicionar nova vaga
+    function adicionarVaga() {
+        const { value: formValues } = Swal.fire({
+            title: 'Adicionar Nova Vaga',
+            html:
+                '<input id="swal-title" class="swal2-input" placeholder="Título da Vaga">' +
+                '<input id="swal-description" class="swal2-input" placeholder="Descrição">' +
+                '<input id="swal-totalHoursJob" type="number" class="swal2-input" placeholder="Total de Horas">' +
+                '<input id="swal-dayValue" type="number" step="0.01" class="swal2-input" placeholder="Valor por Dia">' +
+                '<input id="swal-jobDate" type="date" class="swal2-input" placeholder="Data da Vaga">' +
+                '<input id="swal-city" class="swal2-input" placeholder="Cidade">' +
+                '<input id="swal-state" class="swal2-input" placeholder="Estado">' +
+                '<input id="swal-experience" class="swal2-input" placeholder="Experiência Desejada (separada por vírgula)">' +
+                '<select id="swal-status" class="swal2-input">' +
+                '<option value="ACTIVE">Ativa</option>' +
+                '<option value="INACTIVE">Inativa</option>' +
+                '</select>',
+            focusConfirm: false,
+            preConfirm: () => {
+                const title = document.getElementById('swal-title').value;
+                const description = document.getElementById('swal-description').value;
+                const totalHoursJob = document.getElementById('swal-totalHoursJob').value;
+                const dayValue = document.getElementById('swal-dayValue').value;
+                const jobDate = document.getElementById('swal-jobDate').value;
+                const city = document.getElementById('swal-city').value;
+                const state = document.getElementById('swal-state').value;
+                const experience = document.getElementById('swal-experience').value;
+                const status = document.getElementById('swal-status').value;
+
+                if (!title || !description || !totalHoursJob || !dayValue || !jobDate || !city || !state || !status) {
+                    Swal.showValidationMessage('Por favor, preencha todos os campos!');
+                    return false;
+                }
+
+                return {
+                    title,
+                    description,
+                    totalHoursJob,
+                    dayValue,
+                    jobDate,
+                    city,
+                    state,
+                    desiredExperience: experience ? experience.split(',').map(exp => exp.trim()) : [],
+                    status
+                };
+            }
+        });
+
+        if (formValues) {
+            const bodyResponseDTO = {
+                totalHoursJob: formValues.totalHoursJob,
+                title: formValues.title,
+                description: formValues.description,
+                desiredExperience: formValues.desiredExperience,
+                dayValue: formValues.dayValue,
+                jobDate: formValues.jobDate,
+                city: formValues.city,
+                state: formValues.state,
+                status: formValues.status
+            };
+
+            const token = localStorage.getItem('authToken');
+            fetch('/job-vacancies', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(bodyResponseDTO),
+            }).then(response => {
+                if (response.ok) {
+                    Swal.fire('Sucesso!', 'A vaga foi adicionada com sucesso!', 'success');
+                } else {
+                    Swal.fire('Erro!', 'Não foi possível adicionar a vaga.', 'error');
+                }
+            }).catch(() => {
+                Swal.fire('Erro!', 'Ocorreu um erro ao enviar a vaga.', 'error');
+            });
+        }
+    }
+</script>
+</body>
+</html>

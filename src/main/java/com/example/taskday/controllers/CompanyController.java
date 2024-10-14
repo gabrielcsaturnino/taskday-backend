@@ -7,7 +7,10 @@ import com.example.taskday.domain.company.CompanyResponseDTO;
 import com.example.taskday.domain.employee.Employee;
 import com.example.taskday.domain.employee.PasswordChangeRequestDTO;
 import com.example.taskday.domain.exceptions.OperationException;
+import com.example.taskday.domain.jobVacancy.JobVacancyResponseDTO;
+import com.example.taskday.repositories.JobVacancyRepository;
 import com.example.taskday.services.CompanyService;
+import com.example.taskday.services.JobVacancyService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +29,10 @@ public class CompanyController {
 
     @Autowired
     private CompanyService companyService;
+    @Autowired
+    private JobVacancyRepository jobVacancyRepository;
+    @Autowired
+    private JobVacancyService jobVacancyService;
 
     @GetMapping()
     public ResponseEntity<List<CompanyResponseDTO>> getAllCompanies() {
@@ -67,6 +74,14 @@ public class CompanyController {
         Company company = (Company) authentication.getPrincipal();
         CompanyResponseDTO companyResponseDTO = companyService.findCompanyById(company);
         return ResponseEntity.ok().body(companyResponseDTO);
+    }
+
+    @GetMapping("/jobs")
+    public ResponseEntity<List<JobVacancyResponseDTO>> myJobs(){
+       Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+       Company company = (Company) authentication.getPrincipal();
+       List<JobVacancyResponseDTO> jobVacancyResponseDTOS = jobVacancyService.myJobs(company);
+       return ResponseEntity.ok().body(jobVacancyResponseDTOS);
     }
 }
 

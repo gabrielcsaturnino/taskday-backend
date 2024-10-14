@@ -72,5 +72,7 @@ public class JobVacancyController {
         jobVacancyService.changeJobVacancy(jobVacancyId, jobVacancyChange, company);
         return ResponseEntity.ok().build();
     }
+
+
 }
 

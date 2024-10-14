@@ -23,6 +23,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -81,14 +82,13 @@ public class AuthenticationController {
         var auth = this.authenticationManager.authenticate(usernamePassword);
         var token = tokensService.generateEmployeeToken((Employee) auth.getPrincipal());
 
-
         ((Employee) auth.getPrincipal()).setEnabled(false);
         employeeRepository.save((Employee) auth.getPrincipal());
         return ResponseEntity.ok(token);
     }
 
     @PostMapping("/register/company")
-    public ResponseEntity registerCompany(@RequestBody @Valid CompanyCreateRequestDTO companyCreateRequestDTO) throws OperationException {
+    public ResponseEntity<String> registerCompany(@RequestBody @Valid CompanyCreateRequestDTO companyCreateRequestDTO) throws OperationException {
         if (companyCreateRequestDTO.password().length() <= 10) {
             throw new OperationException("A senha deve ter pelo menos 11 caracteres!");
         }
@@ -98,6 +98,7 @@ public class AuthenticationController {
         var usernamePassword = new UsernamePasswordAuthenticationToken(companyCreateRequestDTO.email(), companyCreateRequestDTO.password());
         var auth = this.authenticationManager.authenticate(usernamePassword);
         var token = tokensService.generateCompanyToken((Company) auth.getPrincipal());
+
 
         ((Company) auth.getPrincipal()).setEnabled(false);
         companyRepository.save((Company) auth.getPrincipal());

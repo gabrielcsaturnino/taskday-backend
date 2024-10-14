@@ -52,12 +52,13 @@ public class SecutiryConfigurations {
                        .requestMatchers(HttpMethod.GET, "/job-vacancies/{jobVacancyId}/employees").hasRole("COMPANY")
                        .requestMatchers(HttpMethod.DELETE, "/job-vacancies/").hasRole("COMPANY")
                        .requestMatchers(HttpMethod.GET, "/companies").permitAll()
+                       .requestMatchers(HttpMethod.GET, "/companies/*").hasRole("COMPANY")
+                       .requestMatchers(HttpMethod.POST, "/companies/*").hasRole("COMPANY")
                        .requestMatchers(HttpMethod.GET, "/auth/isEmployee").permitAll()
                        .requestMatchers(HttpMethod.GET, "/auth/isCompany").permitAll()
                        .requestMatchers(HttpMethod.PUT, "/job-vacancies/{jobVacancyId}").hasRole("COMPANY")
                        .requestMatchers(HttpMethod.GET, "/actuator/prometheus").permitAll()
-
-                       .requestMatchers(HttpMethod.GET, "/home").permitAll()
+                       .requestMatchers(HttpMethod.GET, "/").permitAll()
 
 
 

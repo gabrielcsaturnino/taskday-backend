@@ -59,6 +59,13 @@ public class JobVacancyService {
 
 
     @Transactional
+    public List<JobVacancyResponseDTO> myJobs(Company company){
+        return jobVacancyRepository.findByCompany_Id(company.getId())
+                .stream().map(JobVacancyMapper :: listJobVacancy).collect(Collectors.toList());
+    }
+
+
+    @Transactional
     public void deleteJobVacancy(UUID jobVacancyId, Company company) throws OperationException {
         List<EmployeeJobVacancy> employeeJobVacancy = employeeJobVacancyRepository.findByJobVacancy_Id(jobVacancyId);
         JobVacancy jobVacancy = jobVacancyRepository.findById(jobVacancyId)

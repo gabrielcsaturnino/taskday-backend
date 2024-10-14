@@ -2,6 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <title>Homepage</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
@@ -14,18 +15,48 @@
 
     <div class="mt-4">
         <h2>Login</h2>
-        <form id="loginForm">
+        <div class="btn-group" role="group" aria-label="Login de Usuários">
+            <button class="btn btn-success mr-2" onclick="showEmployeeLogin()">Login como Empregado</button>
+            <button class="btn btn-danger" onclick="showCompanyLogin()">Login como Empresa</button>
+        </div>
+    </div>
+
+
+
+
+    <!-- Formulário de Login como Empregado -->
+    <div id="employeeLogin" class="mt-4" style="display: none;">
+        <h3>Login como Empregado</h3>
+        <form id="loginFormEmployee">
             <div class="form-group">
-                <label for="email">Email:</label>
-                <input type="email" id="email" name="email" class="form-control" required>
+                <label for="employeeEmailLogin">Email:</label>
+                <input type="email" id="employeeEmailLogin" name="email" class="form-control" required>
             </div>
             <div class="form-group">
-                <label for="password">Senha:</label>
-                <input type="password" id="password" name="password" class="form-control" required>
+                <label for="employeePasswordLogin">Senha:</label>
+                <input type="password" id="employeePasswordLogin" name="password" class="form-control" required>
             </div>
             <button type="submit" class="btn btn-primary">Entrar</button>
         </form>
     </div>
+
+    <!-- Formulário de Login como Empresa -->
+    <div id="companyLogin" class="mt-4" style="display: none;">
+        <h3>Login como Empresa</h3>
+        <form id="loginCompanyForm">
+            <div class="form-group">
+                <label for="companyEmailLogin">Email</label>
+                <input type="email" class="form-control" id="companyEmailLogin" required>
+            </div>
+            <div class="form-group">
+                <label for="companyPasswordLogin">Senha</label>
+                <input type="password" class="form-control" id="companyPasswordLogin" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Entrar</button>
+        </form>
+    </div>
+
+
 
     <div class="mt-4">
         <h2>Cadastro</h2>
@@ -42,6 +73,10 @@
                 <div class="form-group">
                     <label for="lastName">Sobrenome:</label>
                     <input type="text" id="lastName" name="lastName" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="dateOfBirth">Data de nascimento:</label>
+                    <input type="date" id="dateOfBirth" name="dateOfBirth" class="form-control" required>
                 </div>
                 <div class="form-group">
                     <label for="emailEmp">Email:</label>
@@ -63,6 +98,10 @@
             </div>
             <div id="employeeAddressFields" class="hidden">
                 <h4>Dados de Endereço</h4>
+                <div class="form-group">
+                    <label for="address">Endereço:</label>
+                    <input type="text" id="address" name="address" class="form-control" required>
+                </div>
                 <div class="form-group">
                     <label for="addressStreetEmp">Rua:</label>
                     <input type="text" id="addressStreetEmp" name="addressStreet" class="form-control" required>
@@ -108,6 +147,10 @@
                     <input type="email" id="emailCompany" name="email" class="form-control" required>
                 </div>
                 <div class="form-group">
+                    <label for="passwordComp">Senha:</label>
+                    <input type="password" id="passwordComp" name="passwordComp" class="form-control" required>
+                </div>
+                <div class="form-group">
                     <label for="phoneNumberCompany">Telefone:</label>
                     <input type="text" id="phoneNumberCompany" name="phoneNumber" class="form-control">
                 </div>
@@ -123,6 +166,10 @@
             </div>
             <div id="companyAddressFields" class="hidden">
                 <h4>Dados de Endereço</h4>
+                <div class="form-group">
+                    <label for="companyAddress">Endereço:</label>
+                    <input type="text" id="companyAddress" name="add" class="form-control" required>
+                </div>
                 <div class="form-group">
                     <label for="companyAddressStreet">Rua:</label>
                     <input type="text" id="companyAddressStreet" name="addressStreet" class="form-control" required>
@@ -208,7 +255,369 @@
             document.getElementById('companyPersonalFields').classList.remove('hidden');
         }
     }
+
+
+    document.getElementById('loginFormEmployee').addEventListener('submit', function (event){
+        event.preventDefault();
+        const employeeLogin = {
+            email: document.getElementById('employeeEmailLogin').value,
+            password: document.getElementById('employeePasswordLogin').value
+        }
+        fetch('auth/login/employee', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(employeeLogin)
+        }).then(response => {
+            if (!response.ok) {
+                // Aqui estamos tratando erros de validação
+                return response.json().then(err => {
+                    // Formatar mensagem de erro
+                    const errorMessage = err.error || 'Erro desconhecido'; // Verifica se o erro existe
+                    throw new Error(errorMessage); // Lança erro com a mensagem apropriada
+                });
+            }else {
+
+            }
+            return response.json();
+        }).then(data => {
+                console.log('Success:', data);
+
+                // Capturar o token do objeto retornado
+                const token = data.token;
+                const refreshToken = data.refreshToken
+                // Supondo que a resposta contenha o token
+                console.log('Token recebido:', token);
+
+                // Você pode armazenar o token em localStorage ou sessionStorage, se necessário
+                localStorage.setItem('authToken', token); // Armazenar o token para uso posterior
+                localStorage.setItem('refreshToken', refreshToken);
+                // Aqui você pode adicionar lógica para o que fazer após um sucesso,
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Login realizado com sucesso!',
+                    text: 'Bem-vindo ao sistema.',
+                    confirmButtonText: 'Ok'
+                }).then(() => {
+                    // Redirecionar para a dashboard dos employees
+                    loginEmployee(token)// Essa URL deve corresponder ao mapeamento do controller EmployeeController
+                });
+                // como redirecionar o usuário ou exibir uma mensagem// Armazenar o token para uso posterior
+            }).catch(error => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro no login',
+                    text: error.message, // Mostra a mensagem de erro capturada
+                    confirmButtonText: 'Tentar novamente'
+                });
+                console.error('Erro:', error.message); // Mensagem de erro
+            });
+    })
+
+
+
+
+    function loginEmployee(token) {
+        fetch('home/employee/dashboard', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}` // Inclui o token JWT no cabeçalho
+            }
+        }).then(response => {
+            if (!response.ok) {
+                // Se o token for inválido ou expirado
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro de Autenticação',
+                    text: 'Seu token expirou ou é inválido!',
+                    confirmButtonText: 'Ok'
+                }).then(() => {
+                    window.location.href = '/login'; // Redireciona para a página de login
+                });
+            } else {
+                return response.text(); // Carrega a página protegida
+            }
+        }).then(html => {
+            document.body.innerHTML = html; // Renderiza o conteúdo da página protegida
+        }).catch(error => {
+            console.error('Erro:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Erro',
+                text: 'Ocorreu um erro ao carregar a página!',
+                confirmButtonText: 'Ok'
+            });
+        });
+    }
+
+
+    document.getElementById('loginCompanyForm').addEventListener('submit', function (event) {
+        event.preventDefault();
+        const employeeLogin = {
+            email: document.getElementById('companyEmailLogin').value,
+            password: document.getElementById('companyPasswordLogin').value
+        };
+
+        fetch('auth/login/company', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(employeeLogin)
+        }).then(response => {
+            if (!response.ok) {
+                return response.json().then(err => {
+                    const errorMessage = err.error || 'Erro desconhecido';
+                    throw new Error(errorMessage);
+                });
+            }
+            return response.json();
+        }).then(data => {
+            console.log('Success:', data);
+
+            // Capturar o token do objeto retornado
+            const token = data.token;
+            const refreshToken = data.refreshToken;
+
+            // Armazenar o token para uso posterior
+            localStorage.setItem('authToken', token);
+            localStorage.setItem('refreshToken', refreshToken);
+
+            loginCompany(token)
+        }).catch(error => {
+            Swal.fire({
+                icon: 'error',
+                title: 'Erro no login',
+                text: error.message,
+                confirmButtonText: 'Tentar novamente'
+            });
+            console.error('Erro:', error.message);
+        });
+    });
+
+    function loginCompany(token) {
+        fetch('/home/company/dashboard', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}` // Inclui o token JWT no cabeçalho
+            }
+        }).then(response => {
+            if (!response.ok) {
+                // Se o token for inválido ou expirado
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro de Autenticação',
+                    text: 'Seu token expirou ou é inválido!',
+                    confirmButtonText: 'Ok'
+                }).then(() => {
+                    window.location.href = '/login'; // Redireciona para a página de login
+                });
+            } else {
+                return response.text(); // Retorna o conteúdo da resposta
+            }
+        })
+            .then(html => {
+                document.body.innerHTML = html; // Renderiza o conteúdo da página de dashboard
+
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro',
+                    text: 'Ocorreu um erro ao carregar a página!',
+                    confirmButtonText: 'Ok'
+                });
+            });
+    }
+
+    document.getElementById('companyForm').addEventListener('submit', function (event){
+        event.preventDefault();
+
+        const companyCreateRequestDTO = {
+            name: document.getElementById("companyName").value,
+            cnpj: document.getElementById("cnpj").value,
+            password: document.getElementById("passwordComp").value,
+            email: document.getElementById("emailCompany").value,
+            phoneNumber: document.getElementById("phoneNumberCompany").value,
+            ownerName: document.getElementById("ownerName").value,
+            ownerCpf: document.getElementById("ownerCpf").value,
+            address: document.getElementById("companyAddress").value,
+            addressStreet: document.getElementById("companyAddressStreet").value,
+            addressComplement: document.getElementById("companyAddressComplement").value,
+            addressNumber: document.getElementById("companyAddressNumber").value,
+            city: document.getElementById("companyCity").value,
+            state: document.getElementById("companyState").value,
+            postalCode: document.getElementById("companyPostalCode").value,
+        }// Enviar os dados para o backend
+        fetch('/auth/register/company', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(companyCreateRequestDTO)
+        })
+            .then(response => {
+                if (!response.ok) {
+                    // Aqui estamos tratando erros de validação
+                    return response.json().then(err => {
+                        // Formatar mensagem de erro
+                        const errorMessage = err.error || 'Erro desconhecido'; // Verifica se o erro existe
+                        throw new Error(errorMessage); // Lança erro com a mensagem apropriada
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Success:', data);
+
+                // Capturar o token do objeto retornado
+                const token = data.token; // Supondo que a resposta contenha o token
+                console.log('Token recebido:', token);
+
+                // Você pode armazenar o token em localStorage ou sessionStorage, se necessário
+                localStorage.setItem('authToken', token); // Armazenar o token para uso posterior
+                // Aqui você pode adicionar lógica para o que fazer após um sucesso,
+                // como redirecionar o usuário ou exibir uma mensagem// Armazenar o token para uso posterior
+                showSuccessModal();
+            })
+            .catch(error => {
+                console.error('Erro:', error.message); // Mensagem de erro
+            });
+    });
+
+    document.getElementById('employeeForm').addEventListener('submit', function (event) {
+        event.preventDefault();
+
+        const employeeDTO = {
+            firstName: document.getElementById('firstName').value,
+            lastName: document.getElementById('lastName').value,
+            email: document.getElementById('emailEmp').value,
+            phoneNumber: document.getElementById('phoneNumberEmp').value,
+            password: document.getElementById('passwordEmp').value,
+            cpf: document.getElementById('cpf').value,
+            dateOfBirth: document.getElementById('dateOfBirth').value, // Campo de data de nascimento
+            address: document.getElementById("address").value,
+            addressStreet: document.getElementById('addressStreetEmp').value,
+            addressComplement: document.getElementById('addressComplementEmp').value,
+            addressNumber: document.getElementById('addressNumberEmp').value,
+            city: document.getElementById('cityEmp').value,
+            state: document.getElementById('stateEmp').value,
+            postalCode: document.getElementById('postalCodeEmp').value
+
+        };
+
+        // Enviar os dados para o backend
+        fetch('/auth/register/employee', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(employeeDTO)
+        })
+            .then(response => {
+                if (!response.ok) {
+                    // Aqui estamos tratando erros de validação
+                    return response.json().then(err => {
+                        // Formatar mensagem de erro
+                        const errorMessage = err.error || 'Erro desconhecido'; // Verifica se o erro existe
+                        throw new Error(errorMessage); // Lança erro com a mensagem apropriada
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Success:', data);
+
+                // Capturar o token do objeto retornado
+                const token = data.token; // Supondo que a resposta contenha o token
+                console.log('Token recebido:', token);
+
+                // Você pode armazenar o token em localStorage ou sessionStorage, se necessário
+                localStorage.setItem('authToken', token); // Armazenar o token para uso posterior
+                // Aqui você pode adicionar lógica para o que fazer após um sucesso,
+                // como redirecionar o usuário ou exibir uma mensagem// Armazenar o token para uso posterior
+                showSuccessModal();
+            })
+            .catch(error => {
+                console.error('Erro:', error.message); // Mensagem de erro
+            });
+    });
+
+
+
+
+    function showSuccessModal() {
+        Swal.fire({
+            title: 'Cadastro realizado com sucesso!',
+            text: 'Insira o código de verificação:',
+            input: 'text',
+            inputAttributes: {
+                autocapitalize: 'off'
+            },
+            confirmButtonText: 'Confirmar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const code = result.value;
+                const token = localStorage.getItem('authToken');
+                // Enviar o código de verificação para o backend
+                fetch(`/auth/confirmcode?code=${code}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}` // Substitua 'token' pelo seu token real
+                    },
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            // Se a resposta for bem-sucedida, exibir mensagem de sucesso
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Código confirmado!',
+                                text: 'Sua conta foi verificada com sucesso.',
+                                confirmButtonText: 'Ok'
+                            });
+                        } else {
+                            // Se houver erro, exibir a mensagem de erro
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Erro!',
+                                text: 'O código de verificação é inválido ou expirou.',
+                                confirmButtonText: 'Tentar novamente'
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        // Tratar erros de rede
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Erro de conexão!',
+                            text: 'Houve um problema ao enviar o código. Por favor, tente novamente mais tarde.',
+                            confirmButtonText: 'Ok'
+                        });
+                        console.error('Error:', error.message);
+                    });
+            }
+        });
+    }
+
+
+
+    function showEmployeeLogin() {
+        document.getElementById('employeeLogin').style.display = 'block';
+        document.getElementById('companyLogin').style.display = 'none';
+    }
+
+    function showCompanyLogin() {
+        document.getElementById('companyLogin').style.display = 'block';
+        document.getElementById('employeeLogin').style.display = 'none';
+    }
+
+
 </script>
+
+
 
 </body>
 </html>
