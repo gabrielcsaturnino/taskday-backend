@@ -1,5 +1,6 @@
 package com.example.taskday;
 
+import com.example.taskday.domain.company.Company;
 import com.example.taskday.domain.employee.*;
 import com.example.taskday.enums.RoleType;
 import com.example.taskday.infra.security.SecurityFilter;
@@ -8,6 +9,7 @@ import com.example.taskday.repositories.EmployeeRepository;
 import com.example.taskday.services.EmailService;
 import com.example.taskday.services.EmployeeJobVacancyService;
 import com.example.taskday.services.EmployeeService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.junit.jupiter.api.*;
@@ -41,6 +43,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -59,10 +62,10 @@ public class EmployeeControllerTest {
     private MockMvc mockMvc;
 
     @Mock
-    private EmailService emailService; // Mock do EmailService
+    private EmailService emailService;
 
     @InjectMocks
-    private EmployeeService employeeService; // Mock do EmailService
+    private EmployeeService employeeService;
 
     @Value("${api.security.token.secret}")
     private String tokenSecret;
@@ -74,13 +77,13 @@ public class EmployeeControllerTest {
     private EmployeeJobVacancyService employeeJobVacancyService;
 
     @Mock
-    private SecutiryConfigurations secutiryConfigurations; // ou o nome da sua classe de filtro
+    private SecutiryConfigurations secutiryConfigurations;
 
     @Autowired
-    private EmployeeRepository employeeRepository; // Moca o repositório
+    private EmployeeRepository employeeRepository;
 
     @Mock
-    private AuthenticationManager authenticationManager; // Moca o gerenciador de autenticação
+    private AuthenticationManager authenticationManager;
 
     @Mock
     private SecurityFilter securityFilter;
@@ -91,9 +94,9 @@ public class EmployeeControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    private static Employee employee; // Variável de instância para armazenar a empresa
-    private static String loginTokenEmployee; // Variável estática para armazenar o token
-    private static boolean isEmployeeCreated;
+    private static Employee employee;
+    private static String loginTokenEmployee;
+
 
 
     @AfterAll
@@ -117,12 +120,19 @@ public class EmployeeControllerTest {
         employee= (Employee) employeeRepository.findByEmail(employeeCreateRequestDTO.email());
         confirmEmployeeCode(token, employee.getConfirmationCode());
 
-        // Realiza login para obter o token de autenticação
         EmployeeAuthenticationRequestDTO loginRequest = new EmployeeAuthenticationRequestDTO(
                 employee.getEmail(),
                 employeeCreateRequestDTO.password()
         );
         loginTokenEmployee = loginEmployee(loginRequest);
+    }
+
+
+
+    @AfterEach
+    public void afterEach() throws Exception {
+        employeeRepository.deleteAll();
+        createAndLoginEmployee();
     }
 
 
@@ -145,12 +155,14 @@ public class EmployeeControllerTest {
     @Test
     public void testLoginEmployeeWithoutConfirmation() throws Exception {
         objectMapper.findAndRegisterModules();
+
+
         List<String> experiences = Arrays.asList("Java Developer", "Spring Boot", "REST APIs");
         LocalDate localDate = LocalDate.parse("2001-02-20");
         EmployeeCreateRequestDTO employeeCreateRequestDTO = new EmployeeCreateRequestDTO(
                 "John",
                 "Doe",
-                "sssaturnino.g@estudantes.ifg.edu.br",
+                "ssaturnino.g@estudantes.ifg.edu.br",
                 "123456789101112",
                 "passw5dwdwddw",
                 "75566161006",
@@ -176,6 +188,7 @@ public class EmployeeControllerTest {
                         .content(objectMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isForbidden());
 
+
         Employee employee = (Employee) employeeRepository.findByEmail(employeeCreateRequestDTO.email());
         confirmEmployeeCode(token, employee.getConfirmationCode());
 
@@ -188,43 +201,15 @@ public class EmployeeControllerTest {
     @Test
     public void testChangePassword() throws Exception {
         objectMapper.findAndRegisterModules();
-        List<String> experiences = Arrays.asList("Java Developer", "Spring Boot", "REST APIs");
-        LocalDate localDate = LocalDate.parse("2001-02-20");
-        EmployeeCreateRequestDTO employeeCreateRequestDTO = new EmployeeCreateRequestDTO(
-                "John",
-                "Doe",
-                "ssaturnino.g@estudantes.ifg.edu.br",
-                "123456789101112",
-                "passw5dwdwddw",
-                "26667765064",
-                experiences,
-                "City",
-                "State",
-                "12345",
-                "Street",
-                "Complement",
-                "123",
-                "Address",
-                localDate
-        );
-
-        String token = createEmployeeAndGetToken(employeeCreateRequestDTO);
-        EmployeeAuthenticationRequestDTO loginRequest = new EmployeeAuthenticationRequestDTO(
-                employeeCreateRequestDTO.email(),
-                employeeCreateRequestDTO.password()
-        );
-
-        Employee employee = (Employee) employeeRepository.findByEmail("ssaturnino.g@estudantes.ifg.edu.br");
-        confirmEmployeeCode(token, employee.getConfirmationCode());
         String newPassword = "123456789101112";
 
-        String loginToken = loginEmployee(loginRequest);
+        assertThat(employee.getConfirmationCode() == null);
 
         mockMvc.perform(post("http://localhost:8080/employees/request-password-change")
-                        .header("Authorization", "Bearer " + loginToken))
+                        .header("Authorization", "Bearer " + loginTokenEmployee))
                 .andExpect(status().isOk());
 
-        Employee employeeReload = (Employee) employeeRepository.findByEmail(employeeCreateRequestDTO.email());
+        Employee employeeReload = (Employee) employeeRepository.findByEmail(employee.getEmail());
 
 
         PasswordChangeRequestDTO passwordChangeRequestDTO = new PasswordChangeRequestDTO(
@@ -232,7 +217,7 @@ public class EmployeeControllerTest {
         );
         mockMvc.perform(put("http://localhost:8080/employees/password")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer " + loginToken)
+                        .header("Authorization", "Bearer " + loginTokenEmployee)
                         .content(objectMapper.writeValueAsString(passwordChangeRequestDTO)))
                 .andExpect(status().isOk());
 
@@ -242,16 +227,22 @@ public class EmployeeControllerTest {
                 newPassword, "111111111"
         );
         mockMvc.perform(post("http://localhost:8080/employees/request-password-change")
-                        .header("Authorization", "Bearer " + loginToken))
+                        .header("Authorization", "Bearer " + loginTokenEmployee))
                 .andExpect(status().isOk());
 
         mockMvc.perform(put("http://localhost:8080/employees/password")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer " + loginToken)
+                        .header("Authorization", "Bearer " + loginTokenEmployee)
                         .content(objectMapper.writeValueAsString(invalidPasswordChangeDTO)))
                 .andExpect(status().isBadRequest());
 
+
         //BAD REQUEST - SENHA INVÁLIDA (UTILIZANDO SENHA ANTIGA)
+        EmployeeAuthenticationRequestDTO loginRequest = new EmployeeAuthenticationRequestDTO(
+                employee.getEmail(),
+                "passw5dwdwddw"
+        );
+
         mockMvc.perform(post("http://localhost:8080/auth/login/employee")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginRequest)))
@@ -259,12 +250,12 @@ public class EmployeeControllerTest {
 
 
         EmployeeAuthenticationRequestDTO loginRequest1 = new EmployeeAuthenticationRequestDTO(
-                employeeCreateRequestDTO.email(),
+                employee.getEmail(),
                 newPassword
         );
 
         loginEmployee(loginRequest1);
-        employeeRepository.delete(employeeReload);
+
     }
 
 
@@ -289,7 +280,49 @@ public class EmployeeControllerTest {
         changeData(employeeChangeAccountRequestDTO);
     }
 
+//    @Test
+//    public void insertBlank() throws Exception {
+//        employeeRepository.deleteAll();
+//        List<String> experiences = Arrays.asList("Java", "Spring", "REST APIs");
+//        LocalDate localDate = LocalDate.parse("2001-02-20");
+//        EmployeeCreateRequestDTO employeeCreateRequestDTO =  new EmployeeCreateRequestDTO(
+//                "John",
+//                "Doe",
+//                "saturnino.g@estudantes.ifg.edu.br",
+//                "123456789101112",
+//                "passw5dwdwddw",
+//                "51521164053",
+//                experiences,
+//                "City",
+//                "",
+//                "12345",
+//                "Street",
+//                "Complement",
+//                "123",
+//                "Address",
+//                localDate
+//        );
+//
+//        MvcResult result = mockMvc.perform(post("http://localhost:8080/auth/register/employee")
+//                        .contentType(MediaType.APPLICATION_JSON)
+//                        .content(objectMapper.writeValueAsString(employeeCreateRequestDTO)))
+//                .andExpect(status().isBadRequest())
+//                .andReturn();
+//
+//        String errorMessage = result.getResponse().getContentAsString();
+//        assertTrue(errorMessage.contains(" Esse campo não pode estar em branco"));
+//    }
 
+
+
+    @Test
+    public void deleteAccount() throws Exception {
+        Employee reloadedEmployee = (Employee) employeeRepository.findByEmail(employee.getEmail());
+        assertThat(reloadedEmployee.getRoleType()).isEqualTo(RoleType.EMPLOYEE);
+        deleteEmployee();
+        Employee employee1 = (Employee) employeeRepository.findByEmail(employee.getEmail());
+        assertThat(employee1 == null);
+    }
 
     public String createEmployeeAndGetToken(EmployeeCreateRequestDTO employeeCreateRequestDTO) throws Exception {
         MvcResult result = mockMvc.perform(post("http://localhost:8080/auth/register/employee")
@@ -306,6 +339,12 @@ public class EmployeeControllerTest {
                         .param("code", code)
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk());
+    }
+
+    public void deleteEmployee() throws Exception{
+        mockMvc.perform(delete("http://localhost:8080/employees")
+                .header("Authorization", "Bearer " + loginTokenEmployee)
+        ).andExpect(status().isAccepted());
     }
 
     public String loginEmployee(EmployeeAuthenticationRequestDTO employeeAuthenticationRequestDTO) throws Exception {

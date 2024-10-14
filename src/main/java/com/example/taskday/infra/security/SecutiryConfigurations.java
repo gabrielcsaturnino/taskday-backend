@@ -46,6 +46,7 @@ public class SecutiryConfigurations {
                        .requestMatchers(HttpMethod.GET, "/employees").permitAll()
                        .requestMatchers(HttpMethod.GET, "/employees/jobs/subscriptions").hasRole("EMPLOYEE")
                        .requestMatchers(HttpMethod.POST, "/employees/jobs/subscribe").hasRole("EMPLOYEE")
+                       .requestMatchers(HttpMethod.DELETE, "/employees").hasRole("EMPLOYEE")
                        .requestMatchers(HttpMethod.GET, "/employees/me").hasRole("EMPLOYEE")
                        .requestMatchers(HttpMethod.PUT, "employees/account").hasRole("EMPLOYEE")
                        .requestMatchers(HttpMethod.PUT, "/employees/password").hasRole("EMPLOYEE")

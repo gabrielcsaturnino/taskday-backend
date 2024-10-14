@@ -83,5 +83,12 @@ public class CompanyController {
        List<JobVacancyResponseDTO> jobVacancyResponseDTOS = jobVacancyService.myJobs(company);
        return ResponseEntity.ok().body(jobVacancyResponseDTOS);
     }
+
+    @DeleteMapping
+    public void deleteAccount() throws OperationException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Company company = (Company) authentication.getPrincipal();
+
+    }
 }
 

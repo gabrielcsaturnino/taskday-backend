@@ -12,6 +12,7 @@ import com.example.taskday.repositories.CompanyRepository;
 import com.example.taskday.repositories.EmployeeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -141,6 +142,11 @@ public class CompanyService {
         company.setConfirmationCode(null);
         company.setPassword(encryptedPassword);
         companyRepository.save(company);
+    }
+
+    @Transactional
+    public void deleteAccount(Company company){
+        companyRepository.delete(company);
     }
 }
 

@@ -33,7 +33,6 @@ public class ValidationExceptionHandler {
         Map<String, String> errors = new HashMap<>();
         Set<ConstraintViolation<?>> violations = ex.getConstraintViolations();
 
-        // Adiciona as violações de validação no retorno
         for (ConstraintViolation<?> violation : violations) {
             String fieldName = violation.getPropertyPath().toString();
             String errorMessage = violation.getMessage();

@@ -6,7 +6,6 @@ import com.example.taskday.domain.employee.*;
 import com.example.taskday.domain.employeeJobVacancy.EmployeeJobVacancyResponseDTO;
 import com.example.taskday.domain.exceptions.OperationException;
 import com.example.taskday.domain.jobVacancy.*;
-import com.example.taskday.enums.Status;
 import com.example.taskday.infra.security.SecurityFilter;
 import com.example.taskday.infra.security.SecutiryConfigurations;
 import com.example.taskday.infra.security.TokensService;
@@ -27,22 +26,17 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -222,7 +216,7 @@ public class EmployeeJobVacancyTest {
 
 
     @Test
-    public void getPoints() throws Exception {
+    public void getMinPoints() throws Exception {
         List<JobVacancyResponseDTO> listJobVacancy = listAllJobVacancy(company.getName());
         JobVacancySubscribeRequestDTO jobVacancySubscribeRequestDTO = new JobVacancySubscribeRequestDTO(
                 listJobVacancy.get(0).uuid().get(),
@@ -231,7 +225,7 @@ public class EmployeeJobVacancyTest {
 
         subscribeJob(jobVacancySubscribeRequestDTO);
 
-       List<EmployeeJobVacancyResponseDTO> employeeResponseDTO = getEmployeePerPoints(listJobVacancy.get(0).uuid().get(), 700);
+       List<EmployeeJobVacancyResponseDTO> employeeResponseDTO = getEmployeePPoints(listJobVacancy.get(0).uuid().get(), 700);
        assertTrue(employeeResponseDTO.isEmpty());
     }
 
@@ -248,7 +242,7 @@ public class EmployeeJobVacancyTest {
     }
 
 
-    public List<EmployeeJobVacancyResponseDTO> getEmployeePerPoints(UUID uuid, double minPoints) throws Exception {
+    public List<EmployeeJobVacancyResponseDTO> getEmployeePPoints(UUID uuid, double minPoints) throws Exception {
         MvcResult result = mockMvc.perform(get("http://localhost:8080/job-vacancies/{jobVacancyId}/employees/points", uuid)
                         .param("minPoints", String.valueOf(minPoints))
                         .header("Authorization", "Bearer " + loginTokenCompany)

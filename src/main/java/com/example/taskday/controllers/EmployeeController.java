@@ -88,6 +88,14 @@ public class EmployeeController {
         return ResponseEntity.ok("Código enviado!");
     }
 
+    @DeleteMapping
+    public ResponseEntity<Void> deleteAccount() throws OperationException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Employee employee = (Employee) authentication.getPrincipal();
+        employeeService.deleteAccount(employee);
+        return ResponseEntity.accepted().build();
+    }
+
 
 
     @GetMapping("/me")

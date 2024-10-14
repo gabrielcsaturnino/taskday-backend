@@ -56,11 +56,11 @@ public class Employee implements UserDetails{
     private String cpf;
     @ElementCollection(fetch = FetchType.EAGER)
     private List<String> experienceList = new ArrayList<>();
-    @NotBlank(message = "Esse campo não pode estar em branco")
     @NotNull(message = "Esse campo não pode ser nulo")
+    @NotBlank(message = "Esse campo não pode estar em branco")
     private String city;
-    @NotBlank(message = "Esse campo não pode estar em branco")
     @NotNull(message = "Esse campo não pode ser nulo")
+    @NotBlank(message = "Esse campo não pode estar em branco")
     private String state;
     @NotBlank(message = "Esse campo não pode estar em branco")
     @NotNull(message = "Esse campo não pode ser nulo")

@@ -74,7 +74,7 @@ public class JobVacancyController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Company company = (Company) authentication.getPrincipal();
         jobVacancyService.deleteJobVacancy(jobVacancyId, company);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.accepted().build();
     }
 
     @PutMapping("/{jobVacancyId}")

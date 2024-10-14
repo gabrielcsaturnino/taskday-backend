@@ -39,12 +39,12 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -66,7 +66,7 @@ public class CompanyControllerTest {
 
 
     @Mock
-    private EmailService emailService; // Mock do EmailService
+    private EmailService emailService;
 
     @Value("${api.security.token.secret}")
     private String tokenSecret;
@@ -81,13 +81,12 @@ public class CompanyControllerTest {
     private CompanyService companyService;
 
     @Mock
-    private SecutiryConfigurations secutiryConfigurations; // ou o nome da sua classe de filtro
+    private SecutiryConfigurations secutiryConfigurations;
 
     @Autowired
-    private CompanyRepository companyRepository; // Moca o repositório
-
+    private CompanyRepository companyRepository;
     @Mock
-    private AuthenticationManager authenticationManager; // Moca o gerenciador de autenticação
+    private AuthenticationManager authenticationManager;
 
     public static JobVacancy createdJobVacancy;
 
@@ -96,12 +95,10 @@ public class CompanyControllerTest {
 
     private TestUtils testUtils = new TestUtils();
 
-    private  Company company; // Variável de instância para armazenar a empresa
-    private  String loginTokenCompany; // Variável estática para armazenar o token
-    private boolean isCompanyCreated;
+    private  Company company;
+    private  String loginTokenCompany;
 
-    @Autowired
-    private EmployeeRepository employeeRepository;
+
 
     JobVacancyCreateRequestDTO jobVacancyCreateRequestDTO;
 
@@ -119,7 +116,11 @@ public class CompanyControllerTest {
     @BeforeEach
     public void setUp() throws Exception {
         MockitoAnnotations.openMocks(this);
+    }
 
+    @AfterEach
+    public void afterE(){
+        jobVacancyRepository.deleteAll();
     }
 
 
@@ -131,7 +132,6 @@ public class CompanyControllerTest {
         company = (Company) companyRepository.findByEmail(companyCreateRequestDTO.email());
         confirmCompanyCode(token, company.getConfirmationCode());
 
-        // Realiza login para obter o token de autenticação
         CompanyAuthenticationRequestDTO loginRequest = new CompanyAuthenticationRequestDTO(
                 company.getEmail(),
                 companyCreateRequestDTO.password()
@@ -139,6 +139,22 @@ public class CompanyControllerTest {
         loginTokenCompany = loginCompany(loginRequest);
     }
 
+
+    @Test
+    public void deleteJob() throws Exception{
+
+        testAddJobVacancy();
+        List<JobVacancy> jobVacancies = jobVacancyRepository.findByCompany_Id(company.getId());
+        UUID uuid = jobVacancies.get(0).getId();
+        mockMvc.perform(delete("/job-vacancies/{jobVacancyId}", uuid)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + loginTokenCompany)
+                        )
+                .andExpect(status().isAccepted());
+
+        List<JobVacancy> jobVacancy = jobVacancyRepository.findByCompany_Id(company.getId());
+        assertThat(jobVacancy.isEmpty());
+    }
 
     @Test
     public void testRegisterCompany() throws Exception {
@@ -191,6 +207,8 @@ public class CompanyControllerTest {
         assertThat(jobVacancyRepository.findAll()).hasSize(1);
         createdJobVacancy = jobVacancyRepository.findAll().get(0);
     }
+
+
 
 
 

@@ -139,4 +139,10 @@ public class EmployeeService {
     }
 
 
+    @Transactional
+    public void deleteAccount(Employee employee){
+        employeeRepository.delete(employee);
+    }
+
+
 }
