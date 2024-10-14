@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página de Login</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+    <div class="login-container">
+        <h1>Login</h1>
+        <form id="loginForm">
+            <div class="input-group">
+                <label for="userType">Tipo de Usuário</label>
+                <select id="userType" required>
+                    <option value="" disabled selected>Selecione uma opção</option>
+                    <option value="employee">Employee</option>
+                    <option value="company">Company</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label for="username">Usuário</label>
+                <input type="text" id="username" placeholder="Digite seu usuário" required>
+            </div>
+            <div class="input-group">
+                <label for="password">Senha</label>
+                <input type="password" id="password" placeholder="Digite sua senha" required>
+            </div>
+            <button type="submit">Entrar</button>
+            <div id="error-message" class="error-message"></div>
+        </form>
+    </div>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const userType = document.getElementById('userType').value;
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (username === 'gabriel' && password === 'senha123') {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Login Realizado!',
+                    text: `Bem-vindo, ${username}!`,
+                    confirmButtonText: 'Continuar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        if (userType === 'employee') {
+                            window.location.href = 'dashboardemployee.html';
+                        } else if (userType === 'company') {
+                            window.location.href = 'dashboardcompany.html';
+                        }
+                    }
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro ao fazer login',
+                    text: 'Usuário ou senha incorretos!',
+                    confirmButtonText: 'Tentar Novamente'
+                });
+            }
+        });
+    </script>
+</body>
+</html>

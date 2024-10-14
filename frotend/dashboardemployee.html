@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Controle - Employee</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+        .dashboard-container {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: relative; 
+        }
+        .vacancy-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .vacancy-card {
+            background-color: #f0f0f0;
+            padding: 20px;
+            border-radius: 8px;
+            flex: 1 1 calc(33.333% - 20px);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .dropdown {
+            position: absolute; 
+            right: 20px;
+            top: 20px;
+        }
+        .dropbtn {
+            background-color: #007bff; 
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            min-width: 160px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            z-index: 1;
+        }
+        .dropdown-content a {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+        }
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+        a.logout {
+            color: red;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <h1>Painel de Controle - Employee</h1>
+        
+        <!-- Menu Dropdown -->
+        <div class="dropdown">
+            <button class="dropbtn">Menu</button>
+            <div class="dropdown-content">
+                <a href="#" onclick="window.location.href='index.html';" class="logout">Logout</a>
+                <a href="employeeperfil.html">Perfil</a>
+            </div>
+        </div>
+
+        <div class="vacancy-container">
+            <div class="vacancy-card">
+                <h2>Vaga 1: Desenvolvedor Frontend</h2>
+                <p>Estamos buscando um desenvolvedor frontend para integrar nossa equipe.</p>
+                <button onclick="inscrever()">Inscrever-se</button>
+            </div>
+            <div class="vacancy-card">
+                <h2>Vaga 2: Designer Gráfico</h2>
+                <p>Procuramos um designer gráfico criativo para projetos visuais.</p>
+                <button onclick="inscrever()">Inscrever-se</button>
+            </div>
+            <div class="vacancy-card">
+                <h2>Vaga 3: Analista de Dados</h2>
+                <p>Buscamos um analista de dados para ajudar na tomada de decisões estratégicas.</p>
+                <button onclick="inscrever()">Inscrever-se</button>
+            </div>
+            <div class="vacancy-card">
+                <h2>Vaga 4: Gerente de Projetos</h2>
+                <p>Precisamos de um gerente de projetos para liderar nossas iniciativas.</p>
+                <button onclick="inscrever()">Inscrever-se</button>
+            </div>
+            <div class="vacancy-card">
+                <h2>Vaga 5: Especialista em Marketing</h2>
+                <p>Estamos em busca de um especialista em marketing digital para nossa equipe.</p>
+                <button onclick="inscrever()">Inscrever-se</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function inscrever() {
+            Swal.fire({
+                icon: 'success',
+                title: 'Inscrição Realizada!',
+                text: 'Você se inscreveu com sucesso.',
+                confirmButtonText: 'Ok'
+            });
+        }
+    </script>
+</body>
+</html>

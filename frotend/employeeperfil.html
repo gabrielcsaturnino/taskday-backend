@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página de Perfil</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .profile-container {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 300px; 
+        }
+        .profile-picture {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%; 
+            margin: 0 auto 20px;
+            background-color: #007bff; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 50px; 
+        }
+        .profile-info {
+            margin-top: 20px;
+            text-align: left; 
+        }
+        .profile-info input, .profile-info textarea {
+            width: 100%; 
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box; 
+        }
+        .dropdown {
+            position: absolute; 
+            right: 20px;
+            top: 20px;
+        }
+        .dropbtn {
+            background-color: #007bff; 
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            min-width: 160px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            z-index: 1;
+        }
+        .dropdown-content a {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+        }
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="dropdown">
+        <button class="dropbtn">Menu</button>
+        <div class="dropdown-content">
+            <a href="#" onclick="window.location.href='index.html';" class="logout">Logout</a>
+            <a href="dashboardemployee.html">Vagas</a>
+        </div>
+    </div>
+
+    <div class="profile-container">
+        <div class="profile-picture">
+            A
+        </div>
+        <div class="profile-info">
+            <h2>Meu Perfil</h2>
+            <label for="name">Nome</label>
+            <input type="text" id="name" value="Ana Silva">
+            
+            <label for="email">Email</label>
+            <input type="email" id="email" value="ana.silva@example.com">
+            
+            <label for="phone">Telefone</label>
+            <input type="tel" id="phone" value="(11) 91234-5678">
+            
+            <label for="city">Cidade</label>
+            <input type="text" id="city" value="São Paulo, SP">
+            
+            <label for="bio">Biografia</label>
+            <textarea id="bio" rows="4">Sou uma profissional dedicada e apaixonada por tecnologia.</textarea>
+        </div>
+    </div>
+</body>
+</html>
