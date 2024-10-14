@@ -152,7 +152,7 @@ public class AuthenticationController {
             String newAccessToken = tokensService.validateRefreshTokenCompany(token);
             return ResponseEntity.ok(newAccessToken);
         } catch (RuntimeException e) {
-            return ResponseEntity.status(401).body("Refresh token inválido ou expirado.");
+            return ResponseEntity.status(401).body("Refsresh token inválido ou expirado.");
         }
     }
 
