@@ -44,7 +44,7 @@ public class TestUtils {
     }
 
     public EmployeeCreateRequestDTO createEmployee(){
-        List<String> experiences = Arrays.asList("Java Developer", "Spring Boot", "REST APIs");
+        List<String> experiences = Arrays.asList("Java", "Spring", "REST APIs");
         LocalDate localDate = LocalDate.parse("2001-02-20");
         return new EmployeeCreateRequestDTO(
                 "John",

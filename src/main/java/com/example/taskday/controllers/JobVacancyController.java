@@ -57,6 +57,18 @@ public class JobVacancyController {
         return ResponseEntity.ok(registeredEmployees);
     }
 
+    @GetMapping("/{jobVacancyId}/employees/points")
+    public ResponseEntity<List<EmployeeJobVacancyResponseDTO>> getEmployeesByPoints(
+            @PathVariable UUID jobVacancyId,
+            @RequestParam double minPoints) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Company company = (Company) authentication.getPrincipal();
+        List<EmployeeJobVacancyResponseDTO> employeesByPoints = employeeJobVacancyService.getEmployeesByJobVacancyAndPoints(jobVacancyId, minPoints);
+
+        return ResponseEntity.ok(employeesByPoints);
+    }
+
     @DeleteMapping("/{jobVacancyId}")
     public ResponseEntity<Void> deleteJobVacancy(@PathVariable UUID jobVacancyId) throws OperationException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

@@ -3,6 +3,7 @@ package com.example.taskday;
 import com.example.taskday.domain.company.Company;
 import com.example.taskday.domain.company.CompanyCreateRequestDTO;
 import com.example.taskday.domain.employee.*;
+import com.example.taskday.domain.employeeJobVacancy.EmployeeJobVacancyResponseDTO;
 import com.example.taskday.domain.exceptions.OperationException;
 import com.example.taskday.domain.jobVacancy.*;
 import com.example.taskday.enums.Status;
@@ -153,11 +154,9 @@ public class EmployeeJobVacancyTest {
         employee = (Employee) employeeRepository.findByEmail("saturnino.g@estudantes.ifg.edu.br");
         employeeService.confirmationAccount(employee, employee.getConfirmationCode());
 
+
         JobVacancyCreateRequestDTO jobVacancyCreateRequestDTO = testUtils.createJobVacancy();
         jobVacancyService.createJobVacancy(jobVacancyCreateRequestDTO, company);
-
-
-
 
         loginTokenEmployee = tokensService.generateEmployeeToken(employee);
         loginTokenCompany = tokensService.generateCompanyToken(company);
@@ -165,7 +164,15 @@ public class EmployeeJobVacancyTest {
     }
     @BeforeEach
     public void before(){
+
+    }
+
+    @AfterEach
+    public void afterEach() throws OperationException {
         employeeJobVacancyRepository.deleteAll();
+        jobVacancyRepository.deleteAll();
+        JobVacancyCreateRequestDTO jobVacancyCreateRequestDTO = testUtils.createJobVacancy();
+        jobVacancyService.createJobVacancy(jobVacancyCreateRequestDTO, company);
     }
 
 
@@ -214,8 +221,22 @@ public class EmployeeJobVacancyTest {
 
 
 
+    @Test
+    public void getPoints() throws Exception {
+        List<JobVacancyResponseDTO> listJobVacancy = listAllJobVacancy(company.getName());
+        JobVacancySubscribeRequestDTO jobVacancySubscribeRequestDTO = new JobVacancySubscribeRequestDTO(
+                listJobVacancy.get(0).uuid().get(),
+                employee.getId()
+        );
 
-    public List<EmployeeResponseDTO> getAllEmployeePerJob(UUID uuid) throws Exception {
+        subscribeJob(jobVacancySubscribeRequestDTO);
+
+       List<EmployeeJobVacancyResponseDTO> employeeResponseDTO = getEmployeePerPoints(listJobVacancy.get(0).uuid().get(), 700);
+       assertTrue(employeeResponseDTO.isEmpty());
+    }
+
+
+    public List<EmployeeJobVacancyResponseDTO> getAllEmployeePerJob(UUID uuid) throws Exception {
         MvcResult result = mockMvc.perform(get("http://localhost:8080/job-vacancies/{jobVacancyId}/employees", uuid)
                       .header("Authorization", "Bearer " + loginTokenCompany)
                )
@@ -223,7 +244,20 @@ public class EmployeeJobVacancyTest {
                .andReturn();
 
         String response = result.getResponse().getContentAsString();
-        return objectMapper.readValue(response, new TypeReference<List<EmployeeResponseDTO>>() {});
+        return objectMapper.readValue(response, new TypeReference<List<EmployeeJobVacancyResponseDTO>>() {});
+    }
+
+
+    public List<EmployeeJobVacancyResponseDTO> getEmployeePerPoints(UUID uuid, double minPoints) throws Exception {
+        MvcResult result = mockMvc.perform(get("http://localhost:8080/job-vacancies/{jobVacancyId}/employees/points", uuid)
+                        .param("minPoints", String.valueOf(minPoints))
+                        .header("Authorization", "Bearer " + loginTokenCompany)
+                )
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String response = result.getResponse().getContentAsString();
+        return objectMapper.readValue(response, new TypeReference<List<EmployeeJobVacancyResponseDTO>>() {});
     }
 
 
@@ -245,7 +279,6 @@ public class EmployeeJobVacancyTest {
                 )
                 .andExpect(status().isOk())
                 .andReturn();
-
     }
 
 
